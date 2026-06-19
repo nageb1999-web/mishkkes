@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D0F1A">
+<title>مشخّص — قيّم ذهبك</title>
+
+<!-- Supabase JS — loaded async, app degrades gracefully when offline -->
+<script>window._sbLoaded = false;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+        onload="window._sbLoaded=true"
+        onerror="console.warn('[مشخّص] Supabase CDN unavailable — offline mode')"></script>
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:          #0D0F1A;
+  --surface:     #141726;
+  --surface2:    #1B1F35;
+  --surface3:    #222640;
+  --border:      #252B45;
+  --border2:     #2E3452;
+
+  --gold:        #C9A043;
+  --gold-light:  #E4C87A;
+  --gold-dim:    rgba(201,160,67,.15);
+  --gold-glow:   rgba(201,160,67,.08);
+
+  --green:       #27AE7A;
+  --green-bg:    rgba(39,174,122,.12);
+  --orange:      #E08040;
+  --orange-bg:   rgba(224,128,64,.12);
+  --red:         #C04444;
+  --red-bg:      rgba(192,68,68,.12);
+  --blue:        #4B6FD4;
+  --blue-bg:     rgba(75,111,212,.12);
+
+  --text:        #EEE9DF;
+  --text2:       #9098B8;
+  --text3:       #545D80;
+
+  --radius:      16px;
+  --radius-sm:   10px;
+  --radius-lg:   24px;
+  --nav-h:       72px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --font: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --transition: cubic-bezier(.4,0,.2,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+input, textarea, select { user-select: auto; }
+
+/* ═══ APP SHELL ═══ */
+#app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  box-shadow: 0 0 80px rgba(0,0,0,.6);
+}
+.page {
+  display: none; flex: 1;
+  overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+  scrollbar-width: none;
+}
+.page::-webkit-scrollbar { display: none; }
+.page.active { display: block; }
+.page.slide-in { animation: slideIn .28s var(--transition) both; }
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.page-header { padding: 54px 20px 0; margin-bottom: 4px; }
+.page-title  { font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+.page-sub    { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+/* ═══ BOTTOM NAV ═══ */
+#bottom-nav {
+  height: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: stretch;
+  flex-shrink: 0; position: relative; z-index: 100;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 5px;
+  background: none; border: none; color: var(--text3);
+  cursor: pointer; transition: color .2s var(--transition);
+  padding-top: 4px; font-family: var(--font); position: relative;
+}
+.nav-btn .nav-label { font-size: 10.5px; font-weight: 500; letter-spacing: .1px; }
+.nav-btn.active { color: var(--gold); }
+.nav-btn.active::before {
+  content: ''; position: absolute;
+  top: 0; left: 20%; right: 20%; height: 2px;
+  background: var(--gold); border-radius: 0 0 4px 4px;
+}
+
+/* ═══ CARDS ═══ */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; position: relative; overflow: hidden; }
+
+/* ═══ BADGES ═══ */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
+}
+.badge-demo   { background: rgba(201,160,67,.18); color: var(--gold);   border: 1px solid rgba(201,160,67,.3); }
+.badge-green  { background: var(--green-bg);       color: var(--green);  border: 1px solid rgba(39,174,122,.25); }
+.badge-orange { background: var(--orange-bg);      color: var(--orange); border: 1px solid rgba(224,128,64,.25); }
+.badge-red    { background: var(--red-bg);          color: var(--red);    border: 1px solid rgba(192,68,68,.25); }
+.badge-blue   { background: var(--blue-bg);        color: var(--blue);   border: 1px solid rgba(75,111,212,.25); }
+
+/* ═══ FORM ═══ */
+.form-group  { margin-bottom: 16px; }
+.form-label  { display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+.form-label span { font-weight: 400; color: var(--text3); }
+.form-input  {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-family: var(--font);
+  font-size: 16px; padding: 13px 15px; outline: none; transition: border-color .2s; direction: rtl;
+}
+.form-input:focus { border-color: var(--gold); }
+.form-input::placeholder { color: var(--text3); }
+
+/* ═══ CHIPS ═══ */
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 8px 14px; border-radius: 100px;
+  border: 1.5px solid var(--border2); background: var(--surface2);
+  color: var(--text2); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .18s var(--transition); font-family: var(--font);
+}
+.chip:active { transform: scale(.96); }
+.chip.selected { background: var(--gold-dim); border-color: var(--gold); color: var(--gold-light); }
+
+/* ═══ BUTTONS ═══ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: none; border-radius: var(--radius-sm); font-family: var(--font);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all .18s var(--transition); padding: 14px 20px; letter-spacing: .1px;
+}
+.btn:active { transform: scale(.97); }
+.btn-gold {
+  background: linear-gradient(135deg, #C9A043, #E4C87A, #C9A043);
+  background-size: 200% 200%; color: #0D0F1A; width: 100%; font-size: 16px; padding: 16px;
+  box-shadow: 0 4px 20px rgba(201,160,67,.25); animation: goldShimmer 3s ease infinite;
+}
+@keyframes goldShimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+.btn-ghost  { background: var(--surface2); color: var(--text2); width: 100%; border: 1px solid var(--border); }
+.btn-danger { background: var(--red-bg); border: 1px solid rgba(192,68,68,.3); color: var(--red); }
+.btn-green  { background: var(--green-bg); border: 1px solid rgba(39,174,122,.3); color: var(--green); width: 100%; }
+.btn-outline{ background: transparent; border: 1.5px solid var(--border2); color: var(--text2); }
+.btn-sm     { padding: 9px 14px; font-size: 13px; border-radius: 8px; }
+
+/* ═══ TOGGLE ═══ */
+.toggle {
+  width: 46px; height: 26px; border-radius: 13px;
+  background: var(--border2); position: relative; cursor: pointer;
+  transition: background .2s; flex-shrink: 0;
+}
+.toggle.on { background: var(--green); }
+.toggle.disabled { opacity: .5; pointer-events: none; }
+.toggle-thumb {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--text);
+  position: absolute; top: 2px; left: 2px;
+  transition: left .2s; box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+.toggle.on .toggle-thumb { left: 22px; }
+
+/* ═══ TOAST ═══ */
+#toast-container {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; z-index: 9999; pointer-events: none; padding: 12px 16px;
+}
+.toast {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 12px 16px; font-size: 14px; font-weight: 500;
+  color: var(--text); box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  animation: toastIn .25s var(--transition) both; pointer-events: auto;
+}
+.toast.toast-out { animation: toastOut .25s var(--transition) both; }
+.toast-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.toast.success .toast-dot { background: var(--green); }
+.toast.error   .toast-dot { background: var(--red); }
+.toast.info    .toast-dot { background: var(--gold); }
+@keyframes toastIn  { from{opacity:0;transform:translateY(-12px) scale(.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes toastOut { from{opacity:1;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(-8px) scale(.96)} }
+
+/* ═══ BOTTOM SHEET ═══ */
+#sheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 500;
+  opacity: 0; pointer-events: none; transition: opacity .3s var(--transition);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+#sheet-overlay.open { opacity: 1; pointer-events: auto; }
+#bottom-sheet {
+  position: fixed; bottom: 0; left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 430px;
+  background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-top: 1px solid var(--border); z-index: 501;
+  transition: transform .35s var(--transition);
+  max-height: 92dvh; display: flex; flex-direction: column; overflow: hidden;
+}
+#bottom-sheet.open { transform: translateX(-50%) translateY(0); }
+.sheet-handle {
+  width: 36px; height: 4px; background: var(--border2);
+  border-radius: 2px; margin: 12px auto 4px; flex-shrink: 0;
+}
+.sheet-content { overflow-y: auto; padding: 0 20px 20px; scrollbar-width: none; flex: 1; }
+.sheet-content::-webkit-scrollbar { display: none; }
+.sheet-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding-bottom: calc(var(--safe-bottom) + 8px); }
+
+/* ═══ HOME PAGE ═══ */
+#page-home { padding-top: 0; }
+.home-header {
+  padding: 52px 20px 20px;
+  background: linear-gradient(180deg, rgba(201,160,67,.06) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+}
+.home-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.logo-mark {
+  width: 38px; height: 38px; background: var(--gold-dim);
+  border: 1.5px solid rgba(201,160,67,.4); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-text {
+  font-size: 20px; font-weight: 800; letter-spacing: -.5px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.logo-tagline { font-size: 12px; color: var(--text3); display: block; margin-top: 1px; }
+
+/* Hero price card */
+.price-hero {
+  background: linear-gradient(135deg, #1B1F35 0%, #161929 100%);
+  border: 1px solid rgba(201,160,67,.25); border-radius: var(--radius-lg);
+  padding: 20px 22px; margin: 0 20px 20px; position: relative; overflow: hidden;
+}
+.price-hero::before {
+  content: ''; position: absolute; top: -30px; left: -30px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(201,160,67,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.price-hero-label {
+  font-size: 12px; color: var(--text3); font-weight: 600;
+  letter-spacing: .3px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.price-hero-value {
+  font-size: 34px; font-weight: 800; letter-spacing: -1px;
+  color: var(--gold-light); line-height: 1; margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.price-hero-unit { font-size: 16px; font-weight: 500; color: var(--gold); margin-right: 4px; }
+.price-hero-sub  { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+.price-hero-footer {
+  display: flex; align-items: center; gap: 8px;
+  padding-top: 10px; border-top: 1px solid rgba(201,160,67,.12);
+  flex-wrap: wrap;
+}
+.price-hero-meta { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 5px; flex: 1; }
+.btn-refresh-sm {
+  width: 28px; height: 28px; border: 1px solid rgba(201,160,67,.3);
+  background: rgba(201,160,67,.08); border-radius: 8px; color: var(--gold);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .2s; flex-shrink: 0;
+}
+.btn-refresh-sm:active { transform: scale(.88); }
+.btn-refresh-sm.spinning svg { animation: spin360 .8s linear infinite; }
+@keyframes spin360 { to { transform: rotate(360deg); } }
+
+/* Karat grid */
+.karat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; padding: 0 20px; margin-bottom: 20px;
+}
+.karat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 8px; text-align: center;
+}
+.karat-num   { font-size: 11px; color: var(--text3); font-weight: 600; margin-bottom: 4px; }
+.karat-price { font-size: 13px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.home-cta   { padding: 0 20px 20px; }
+.feature-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; padding: 0 20px; margin-bottom: 20px;
+}
+.feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 10px; text-align: center; }
+.feature-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;
+}
+.feature-icon.gold  { background: var(--gold-dim); }
+.feature-icon.green { background: var(--green-bg); }
+.feature-icon.blue  { background: var(--blue-bg); }
+.feature-label { font-size: 11px; color: var(--text2); line-height: 1.4; font-weight: 500; }
+.disclaimer {
+  padding: 12px 20px; font-size: 11px; color: var(--text3); line-height: 1.6;
+  border-top: 1px solid var(--border); margin-top: 8px;
+}
+
+/* ═══ EVAL PAGE ═══ */
+#page-eval { padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 80px); }
+.eval-body { padding: 16px 20px; }
+
+/* ═══ RESULT SHEET ═══ */
+.result-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.result-meta-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--text2);
+  display: flex; align-items: center; gap: 5px;
+}
+.result-meta-item strong { color: var(--text); font-size: 13px; }
+.result-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.result-row:last-child { border-bottom: none; }
+.result-label { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 7px; }
+.result-value { font-size: 15px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.result-value.gold { color: var(--gold-light); }
+.result-highlight {
+  background: var(--gold-glow); border-radius: 10px; padding: 12px;
+  margin: 4px 0; border-bottom: none !important;
+}
+.verdict-box {
+  border-radius: var(--radius); padding: 16px; margin: 16px 0;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.verdict-box.good   { background: var(--green-bg);  border: 1px solid rgba(39,174,122,.25); }
+.verdict-box.fair   { background: var(--gold-dim);   border: 1px solid rgba(201,160,67,.25); }
+.verdict-box.high   { background: var(--orange-bg);  border: 1px solid rgba(224,128,64,.25); }
+.verdict-box.danger { background: var(--red-bg);     border: 1px solid rgba(192,68,68,.25); }
+.verdict-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.verdict-box.good   .verdict-icon { background: rgba(39,174,122,.2); }
+.verdict-box.fair   .verdict-icon { background: rgba(201,160,67,.2); }
+.verdict-box.high   .verdict-icon { background: rgba(224,128,64,.2); }
+.verdict-box.danger .verdict-icon { background: rgba(192,68,68,.2); }
+.verdict-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.verdict-box.good   .verdict-title { color: var(--green); }
+.verdict-box.fair   .verdict-title { color: var(--gold); }
+.verdict-box.high   .verdict-title { color: var(--orange); }
+.verdict-box.danger .verdict-title { color: var(--red); }
+.verdict-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* ═══ PORTFOLIO PAGE ═══ */
+.portfolio-summary {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 10px; padding: 16px 20px 0;
+}
+.summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; }
+.summary-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
+.summary-value { font-size: 17px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.summary-value.gold  { color: var(--gold-light); }
+.summary-value.green { color: var(--green); }
+.summary-value.red   { color: var(--red); }
+.portfolio-list { padding: 16px 20px 0; }
+.piece-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  transition: border-color .2s;
+}
+.piece-card:active { border-color: var(--border2); }
+.piece-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--gold-dim); border: 1px solid rgba(201,160,67,.25);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.piece-info { flex: 1; min-width: 0; }
+.piece-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.piece-details { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+.piece-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+.piece-value { text-align: left; flex-shrink: 0; min-width: 90px; }
+.piece-val-main { font-size: 14px; font-weight: 700; color: var(--gold-light); font-variant-numeric: tabular-nums; text-align: left; }
+.piece-pl { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: left; margin-top: 2px; }
+.piece-pl.pos { color: var(--green); }
+.piece-pl.neg { color: var(--red); }
+.piece-pl.neu { color: var(--text3); }
+.empty-state { text-align: center; padding: 60px 40px; }
+.empty-icon {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+}
+.empty-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.empty-sub   { font-size: 13px; color: var(--text3); line-height: 1.6; margin-bottom: 24px; }
+
+/* ═══ DETAIL SHEET SECTIONS ═══ */
+.detail-section {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 12px;
+}
+.detail-section-header {
+  padding: 10px 14px; font-size: 11px; font-weight: 700;
+  letter-spacing: .5px; text-transform: uppercase; color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 7px;
+}
+.detail-row {
+  display: flex; justify-content: space-between; padding: 10px 14px;
+  font-size: 14px; border-bottom: 1px solid var(--border);
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-key { color: var(--text2); }
+.detail-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.detail-val.gold  { color: var(--gold-light); }
+.detail-val.green { color: var(--green); }
+.detail-val.red   { color: var(--red); }
+
+/* ═══ SETTINGS PAGE ═══ */
+.settings-section { padding: 16px 20px 0; margin-bottom: 4px; }
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border); gap: 12px;
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-info { flex: 1; }
+.setting-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+.setting-hint { font-size: 11px; color: var(--text3); }
+
+/* Connection status */
+.conn-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.conn-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.conn-card.status-online  .conn-dot { background: var(--green); }
+.conn-card.status-offline .conn-dot { background: var(--red); }
+.conn-card.status-demo    .conn-dot { background: var(--gold); }
+.conn-card.status-cache   .conn-dot { background: var(--orange); }
+.conn-info .conn-title { font-size: 14px; font-weight: 600; }
+.conn-info .conn-sub   { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* About section */
+.about-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.about-logo {
+  font-size: 22px; font-weight: 800;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
+}
+.about-text { font-size: 13px; color: var(--text3); line-height: 1.7; }
+
+/* ═══ CONFIRM DIALOG ═══ */
+.confirm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 600;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.confirm-overlay.open { opacity: 1; pointer-events: auto; }
+.confirm-box {
+  background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-top: 1px solid var(--border); padding: 24px 20px;
+  width: 100%; max-width: 430px;
+  transform: translateY(100%); transition: transform .3s var(--transition);
+  padding-bottom: calc(var(--safe-bottom) + 24px);
+}
+.confirm-overlay.open .confirm-box { transform: translateY(0); }
+.confirm-title { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+.confirm-sub   { font-size: 13px; color: var(--text3); text-align: center; margin-bottom: 20px; }
+.confirm-btns  { display: flex; gap: 10px; }
+
+/* ═══ DIVIDER / LABELS ═══ */
+.divider      { height: 1px; background: var(--border); margin: 16px 0; }
+.section-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 12px;
+}
+
+/* ═══ UTILITIES ═══ */
+.px-20       { padding-left: 20px; padding-right: 20px; }
+.mt-12       { margin-top: 12px; }
+.mb-12       { margin-bottom: 12px; }
+.num         { font-variant-numeric: tabular-nums; }
+.text-gold   { color: var(--gold); }
+.text-green  { color: var(--green); }
+.text-orange { color: var(--orange); }
+.text-red    { color: var(--red); }
+.text-dim    { color: var(--text3); }
+
+/* ═══ DESKTOP ═══ */
+@media (min-width: 431px) {
+  #app { border-right: 1px solid var(--border); border-left: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ══════════ PAGE: HOME ══════════ -->
+  <div id="page-home" class="page active">
+    <div class="home-header">
+      <div class="home-logo">
+        <div class="logo-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#C9A043" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-text">مشخّص</div>
+          <span class="logo-tagline">اعرف قيمة ذهبك قبل أن تدفع</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero price card — rendered dynamically -->
+    <div class="price-hero" id="hero-card">
+      <div class="price-hero-label" id="hero-label">
+        <span class="badge badge-demo">تجريبي</span>
+        سعر السوق — البصرة
+      </div>
+      <div class="price-hero-value">
+        <span id="hero-price">95,000</span>
+        <span class="price-hero-unit">د.ع</span>
+      </div>
+      <div class="price-hero-sub" id="hero-sub">ذهب عراقي — عيار 21 خام</div>
+      <div class="price-hero-footer">
+        <div class="price-hero-meta">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#545D80" stroke-width="2"/>
+            <path d="M12 6v6l4 2" stroke="#545D80" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span id="hero-time">بيانات تجريبية</span>
+        </div>
+        <span id="hero-conf"></span>
+        <button class="btn-refresh-sm" id="btn-refresh-hero" onclick="App.refreshPrices()" title="تحديث السعر">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M23 4v6h-6M1 20v-6h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Karat grid -->
+    <div class="karat-grid">
+      <div class="karat-card">
+        <div class="karat-num">عيار 24</div>
+        <div class="karat-price num" id="k24">—</div>
+      </div>
+      <div class="karat-card">
+        <div class="karat-num">عيار 22</div>
+        <div class="karat-price num" id="k22">—</div>
+      </div>
+      <div class="karat-card">
+        <div class="karat-num" style="color:var(--gold)">عيار 21</div>
+        <div class="karat-price num" style="color:var(--gold)" id="k21">—</div>
+      </div>
+      <div class="karat-card">
+        <div class="karat-num">عيار 18</div>
+        <div class="karat-price num" id="k18">—</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="home-cta">
+      <button class="btn btn-gold" onclick="App.goTo('eval')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#0D0F1A" stroke-width="2.2"/>
+          <path d="M12 8v4l3 3" stroke="#0D0F1A" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        قيّم قطعة ذهب الآن
+      </button>
+    </div>
+
+    <!-- Features -->
+    <div class="px-20 mb-12"><div class="section-title">كيف يساعدك مشخّص؟</div></div>
+    <div class="feature-row">
+      <div class="feature-card">
+        <div class="feature-icon gold">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="#C9A043" stroke-width="2"/><path d="M16 7V5a2 2 0 00-4 0v2" stroke="#C9A043" stroke-width="2"/></svg>
+        </div>
+        <div class="feature-label">اعرف القيمة الخام للذهب</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="#27AE7A" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="feature-label">قارن سعر الصائغ</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#4B6FD4" stroke-width="2" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="feature-label">احسب سعر البيع المتوقع</div>
+      </div>
+    </div>
+    <div class="disclaimer">⚠️ النتائج تقديرية وليست سعراً ملزماً من محلات الذهب. مشخّص للمساعدة فقط.</div>
+  </div>
+
+  <!-- ══════════ PAGE: EVALUATE ══════════ -->
+  <div id="page-eval" class="page">
+    <div class="page-header">
+      <div class="page-title">قيّم ذهبك</div>
+      <div class="page-sub">أدخل تفاصيل القطعة للحصول على تقييم دقيق</div>
+    </div>
+    <div class="eval-body">
+      <div class="form-group">
+        <label class="form-label">نوع القطعة</label>
+        <div class="chip-group" id="type-chips">
+          <div class="chip selected" data-val="خاتم">خاتم</div>
+          <div class="chip" data-val="سوار">سوار</div>
+          <div class="chip" data-val="قلادة">قلادة</div>
+          <div class="chip" data-val="حلق">حلق</div>
+          <div class="chip" data-val="ليرة">ليرة</div>
+          <div class="chip" data-val="سبيكة">سبيكة</div>
+          <div class="chip" data-val="ذهب مستعمل">مستعمل</div>
+          <div class="chip" data-val="أخرى">أخرى</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">العيار</label>
+        <div class="chip-group" id="karat-chips">
+          <div class="chip" data-val="24">عيار 24</div>
+          <div class="chip" data-val="22">عيار 22</div>
+          <div class="chip selected" data-val="21">عيار 21</div>
+          <div class="chip" data-val="18">عيار 18</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الوزن الكلي <span>(بالغرام)</span></label>
+        <input class="form-input" id="weight-total" type="number" placeholder="مثال: 4.25" min="0.01" step="0.01" inputmode="decimal">
+      </div>
+      <div class="form-group">
+        <label class="form-label">وزن الأحجار / الفصوص <span>(اختياري — غرام)</span></label>
+        <input class="form-input" id="weight-stones" type="number" placeholder="0 إذا لم يوجد" min="0" step="0.01" inputmode="decimal" value="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">مستوى المصنعية</label>
+        <div class="chip-group" id="work-chips">
+          <div class="chip" data-val="low">منخفضة</div>
+          <div class="chip selected" data-val="medium">متوسطة</div>
+          <div class="chip" data-val="high">مرتفعة</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">سعر الصائغ <span>(اختياري — د.ع)</span></label>
+        <input class="form-input" id="seller-price" type="number" placeholder="السعر المطلوب من الصائغ" min="0" step="1000" inputmode="numeric">
+      </div>
+      <div id="eval-error" style="display:none;font-size:13px;margin-bottom:12px;padding:10px 12px;background:var(--red-bg);border-radius:8px;border:1px solid rgba(192,68,68,.3);color:var(--red)"></div>
+      <button class="btn btn-gold" onclick="App.calculate()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3M16 3h5m0 0v5m0-5l-8 8" stroke="#0D0F1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        احسب التقييم
+      </button>
+      <div style="margin-top:12px" id="eval-price-note"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ PAGE: PORTFOLIO ══════════ -->
+  <div id="page-portfolio" class="page">
+    <div class="page-header">
+      <div class="page-title">محفظتي</div>
+      <div class="page-sub">قطعك المقيّمة — تتحدث بسعر اليوم</div>
+    </div>
+    <div class="portfolio-summary">
+      <div class="summary-card">
+        <div class="summary-label">عدد القطع</div>
+        <div class="summary-value" id="sum-count">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">إجمالي الوزن</div>
+        <div class="summary-value" id="sum-weight">—</div>
+      </div>
+      <div class="summary-card" style="grid-column:span 2">
+        <div class="summary-label">القيمة الخام الحالية</div>
+        <div class="summary-value gold num" id="sum-raw">—</div>
+      </div>
+      <div class="summary-card" style="grid-column:span 2" id="sum-pl-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <div class="summary-label">ربح / خسارة متوقعة</div>
+          <span id="sum-pl-badge" class="badge" style="display:none"></span>
+        </div>
+        <div class="summary-value" id="sum-pl">—</div>
+      </div>
+    </div>
+    <div class="portfolio-list" id="portfolio-list"></div>
+  </div>
+
+  <!-- ══════════ PAGE: SETTINGS ══════════ -->
+  <div id="page-settings" class="page">
+    <div class="page-header">
+      <div class="page-title">الإعدادات</div>
+      <div class="page-sub">تفضيلات السوق والاتصال</div>
+    </div>
+
+    <!-- Connection status -->
+    <div class="settings-section">
+      <div id="conn-status-wrap"><!-- rendered by JS --></div>
+    </div>
+
+    <!-- City -->
+    <div class="settings-section">
+      <div class="section-title">المدينة</div>
+      <div class="settings-card" style="padding:14px 16px">
+        <div class="chip-group" id="city-chips">
+          <div class="chip selected" data-val="basra">البصرة</div>
+          <div class="chip" data-val="baghdad">بغداد</div>
+          <div class="chip" data-val="erbil">أربيل</div>
+          <div class="chip" data-val="other">أخرى</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Origin -->
+    <div class="settings-section">
+      <div class="section-title">نوع الذهب الافتراضي</div>
+      <div class="settings-card" style="padding:14px 16px">
+        <div class="chip-group" id="origin-chips">
+          <div class="chip selected" data-val="iraqi">عراقي</div>
+          <div class="chip" data-val="gulf">خليجي</div>
+          <div class="chip" data-val="turkish">تركي</div>
+          <div class="chip" data-val="general">عام</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggles & update -->
+    <div class="settings-section">
+      <div class="section-title">الاتصال والتحديث</div>
+      <div class="settings-card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">تحديث الأسعار تلقائياً</div>
+            <div class="setting-hint">عند الاتصال بالإنترنت</div>
+          </div>
+          <div class="toggle on" id="toggle-auto" onclick="App.toggleAutoUpdate()">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">استخدام آخر سعر محفوظ</div>
+            <div class="setting-hint">يعمل دائماً عند انقطاع الإنترنت</div>
+          </div>
+          <div class="toggle on disabled"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="setting-row" style="border-bottom:none">
+          <div class="setting-info">
+            <div class="setting-name">آخر تحديث للأسعار</div>
+            <div class="setting-hint" id="settings-last-update">—</div>
+          </div>
+          <button class="btn btn-sm btn-outline" id="btn-refresh-settings" onclick="App.refreshPrices()">
+            تحديث الآن
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <button class="btn btn-gold" onclick="App.saveUserPrefs()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="#0D0F1A" stroke-width="2.2"/>
+          <polyline points="17,21 17,13 7,13 7,21" stroke="#0D0F1A" stroke-width="2.2"/>
+        </svg>
+        حفظ التفضيلات
+      </button>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-title">حول مشخّص</div>
+      <div class="about-card">
+        <div class="about-logo">مشخّص</div>
+        <div class="about-text">
+          مشخّص يساعدك على فهم القيمة التقديرية للذهب حسب الوزن والعيار والمصنعية.
+          لا يمثل سعراً رسمياً أو ملزماً من محلات الذهب. استخدمه كأداة مقارنة فقط.
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text3)">
+          الإصدار 2.0.0 — أسعار مركزية عبر Supabase
+        </div>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-page="home" onclick="App.goTo('home')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
+      <span class="nav-label">الرئيسية</span>
+    </button>
+    <button class="nav-btn" data-page="eval" onclick="App.goTo('eval')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <span class="nav-label">قيّم ذهبك</span>
+    </button>
+    <button class="nav-btn" data-page="portfolio" onclick="App.goTo('portfolio')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 7V5a2 2 0 014 0" stroke="currentColor" stroke-width="2"/></svg></div>
+      <span class="nav-label">محفظتي</span>
+    </button>
+    <button class="nav-btn" data-page="settings" onclick="App.goTo('settings')">
+      <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg></div>
+      <span class="nav-label">الإعدادات</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══ BOTTOM SHEET ══ -->
+<div id="sheet-overlay" onclick="App.closeSheet()"></div>
+<div id="bottom-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-content" id="sheet-content"></div>
+</div>
+
+<!-- ══ CONFIRM DIALOG ══ -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title">حذف القطعة؟</div>
+    <div class="confirm-sub" id="confirm-sub">هذا الإجراء لا يمكن التراجع عنه</div>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" style="flex:1" onclick="App.closeConfirm()">إلغاء</button>
+      <button class="btn btn-danger" style="flex:1" id="confirm-ok">تأكيد الحذف</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast-container"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   ▸ SUPABASE CONFIG — Replace with your project values
+══════════════════════════════════════════════════════ */
+const SUPABASE_URL      = 'https://hgpckgfeqvmnsqklwrax.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_sALNoV-I9UkuzBC4hJeLWg__w9me5gY';
+
+/* ══════════════════════════════════════════════════════
+   ▸ APP CONFIG — Workmanship & sell rates (not user-editable)
+     Move to admin panel in a future release
+══════════════════════════════════════════════════════ */
+const CONFIG = Object.freeze({
+  workmanship: { low: 5000, medium: 10000, high: 18000 }, // IQD/gram
+  sellDiscount: 5,          // % default buyback discount
+  defaultPrice21: 95000,    // fallback demo price IQD/gram
+});
+
+/* ══════════════════════════════════════════════════════
+   ▸ LABELS & ICONS
+══════════════════════════════════════════════════════ */
+const CITY_LABELS   = { basra:'البصرة', baghdad:'بغداد', erbil:'أربيل', other:'أخرى' };
+const ORIGIN_LABELS = { iraqi:'عراقي', gulf:'خليجي', turkish:'تركي', general:'عام' };
+const WORK_LABELS   = { low:'مصنعية منخفضة', medium:'مصنعية متوسطة', high:'مصنعية مرتفعة' };
+
+const PIECE_ICONS = {
+  'خاتم':        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" stroke="#C9A043" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#C9A043"/></svg>`,
+  'سوار':        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 4C5.8 5.5 4 8.5 4 12s1.8 6.5 4 8" stroke="#C9A043" stroke-width="2" stroke-linecap="round"/><path d="M16 4c2.2 1.5 4 4.5 4 8s-1.8 6.5-4 8" stroke="#C9A043" stroke-width="2" stroke-linecap="round"/><path d="M8 4h8M8 20h8" stroke="#C9A043" stroke-width="2" stroke-linecap="round"/></svg>`,
+  'قلادة':       `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2v8M12 10l-4 6h8l-4-6" stroke="#C9A043" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="18" r="3" stroke="#C9A043" stroke-width="2"/></svg>`,
+  'حلق':         `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 4a4 4 0 00-4 4v5a2 2 0 004 0M16 4a4 4 0 014 4v5a2 2 0 01-4 0" stroke="#C9A043" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="16" r="2" stroke="#C9A043" stroke-width="2"/><circle cx="16" cy="16" r="2" stroke="#C9A043" stroke-width="2"/></svg>`,
+  'ليرة':        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#C9A043" stroke-width="2"/><path d="M12 7v10M9 9.5h4.5a2 2 0 010 4H9m0 0h5" stroke="#C9A043" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  'سبيكة':       `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="10" rx="2" stroke="#C9A043" stroke-width="2"/><path d="M6 8V6h12v2" stroke="#C9A043" stroke-width="2" stroke-linejoin="round"/></svg>`,
+  'ذهب مستعمل': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 12h4l3-9 4 18 3-9h6" stroke="#C9A043" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  'أخرى':        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#C9A043" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#C9A043" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+};
+
+/* ══════════════════════════════════════════════════════
+   ▸ UTILITIES
+══════════════════════════════════════════════════════ */
+const fmt  = n => Math.round(n).toLocaleString('ar-IQ');
+const fmtG = n => parseFloat(n.toFixed(2)).toLocaleString('ar-IQ');
+const uid  = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+function toast(msg, type = 'info', dur = 2800) {
+  const tc = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="toast-dot"></span><span>${msg}</span>`;
+  tc.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('toast-out');
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+  }, dur);
+}
+
+function formatTime(isoStr) {
+  if (!isoStr) return '—';
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return '—';
+  const now    = new Date();
+  const diffMs = now - d;
+  const mins   = Math.floor(diffMs / 60000);
+  const days   = Math.floor(diffMs / 86400000);
+  const t      = d.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
+  if (mins < 2)     return 'الآن';
+  if (mins < 60)    return `منذ ${mins} دقيقة`;
+  if (days === 0)   return `اليوم، ${t}`;
+  if (days === 1)   return `أمس، ${t}`;
+  return d.toLocaleDateString('ar-IQ', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+/* ══════════════════════════════════════════════════════
+   ▸ STORAGE MODULE
+══════════════════════════════════════════════════════ */
+const Store = (() => {
+  const KEY = {
+    PREFS:     'mshakhkhas_prefs',
+    MARKET:    'mshakhkhas_market',
+    PORTFOLIO: 'mshakhkhas_portfolio',
+  };
+
+  const DEFAULT_PREFS = {
+    city: 'basra', origin: 'iraqi', autoUpdate: true, useOffline: true,
+  };
+  const DEFAULT_MARKET = {
+    price21: CONFIG.defaultPrice21,
+    city: 'basra', origin: 'iraqi',
+    confidence: 'medium', source: 'demo',
+    is_verified: false, source_count: 1, updatedAt: null,
+  };
+
+  function get(key, def) {
+    try { const v = localStorage.getItem(key); return v ? { ...def, ...JSON.parse(v) } : { ...def }; }
+    catch { return { ...def }; }
+  }
+  function set(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  }
+
+  return {
+    getPrefs()        { return get(KEY.PREFS,   DEFAULT_PREFS); },
+    savePrefs(p)      { set(KEY.PREFS,   p); },
+    getMarket()       { return get(KEY.MARKET,  DEFAULT_MARKET); },
+    saveMarket(m)     { set(KEY.MARKET,  m); },
+    getPortfolio() {
+      try {
+        const v = localStorage.getItem(KEY.PORTFOLIO);
+        const a = v ? JSON.parse(v) : [];
+        return Array.isArray(a) ? a : [];
+      } catch { return []; }
+    },
+    savePortfolio(p)  { set(KEY.PORTFOLIO, p); },
+
+    /* Migrate old mshakhkhas_settings → new market cache */
+    migrateOldSettings() {
+      try {
+        const raw = localStorage.getItem('mshakhkhas_settings');
+        if (!raw) return;
+        const old = JSON.parse(raw);
+        if (old && old.price21 > 0) {
+          const m = get(KEY.MARKET, DEFAULT_MARKET);
+          if (m.source === 'demo') {
+            m.price21  = old.price21;
+            m.source   = 'cache';
+            m.updatedAt = new Date().toISOString();
+            set(KEY.MARKET, m);
+          }
+        }
+        localStorage.removeItem('mshakhkhas_settings');
+      } catch {}
+    },
+  };
+})();
+
+/* ══════════════════════════════════════════════════════
+   ▸ PORTFOLIO MIGRATION (v1 → v2)
+══════════════════════════════════════════════════════ */
+function migratePortfolio() {
+  const portfolio = Store.getPortfolio();
+  let changed = false;
+
+  const migrated = portfolio.map(piece => {
+    if (piece.rawValueAtSave !== undefined) return piece; // already v2
+
+    changed = true;
+    const rawValueAtSave      = piece.rawValue      || (piece.netWeight || 0) * (piece.pPerGram || CONFIG.defaultPrice21);
+    const workmanshipAtSave   = piece.workmanship   || 0;
+    const estimatedBuyAtSave  = piece.buyPrice      || rawValueAtSave + workmanshipAtSave;
+    const estimatedSellAtSave = piece.sellPrice     || rawValueAtSave * (1 - CONFIG.sellDiscount / 100);
+    const costBasis           = (piece.sellerPrice && piece.sellerPrice > 0) ? piece.sellerPrice : estimatedBuyAtSave;
+
+    return {
+      ...piece,
+      priceAtSave: piece.priceAtSave || CONFIG.defaultPrice21,
+      rawValueAtSave,
+      workmanshipAtSave,
+      estimatedBuyAtSave,
+      estimatedSellAtSave,
+      costBasis,
+    };
+  });
+
+  if (changed) Store.savePortfolio(migrated);
+  return migrated;
+}
+
+/* ══════════════════════════════════════════════════════
+   ▸ CALCULATIONS
+══════════════════════════════════════════════════════ */
+function priceForKarat(price21, karat) {
+  return price21 * (karat / 21);
+}
+
+function evaluate(input, price21) {
+  const netWeight    = input.totalWeight - input.stoneWeight;
+  const pPerGram     = priceForKarat(price21, input.karat);
+  const rawValue     = netWeight * pPerGram;
+  const workRate     = CONFIG.workmanship[input.workLevel] ?? CONFIG.workmanship.medium;
+  const workmanship  = netWeight * workRate;
+  const estimatedBuyPrice  = rawValue + workmanship;
+  const estimatedSellPrice = rawValue * (1 - CONFIG.sellDiscount / 100);
+
+  let verdict = null;
+  if (input.sellerPrice && input.sellerPrice > 0) {
+    const diff = input.sellerPrice - estimatedBuyPrice;
+    const pct  = (diff / estimatedBuyPrice) * 100;
+    let level, label, desc;
+    if      (pct < -3)  { level = 'good';   label = 'سعر جيد ✓';                  desc = `السعر المعروض أقل من التقدير بـ ${fmt(Math.abs(diff))} د.ع — فرصة جيدة.`; }
+    else if (pct <= 3)  { level = 'fair';   label = 'السعر عادل تقريباً';          desc = `الفارق ${fmt(Math.abs(diff))} د.ع — ضمن الهامش الطبيعي.`; }
+    else if (pct <= 8)  { level = 'high';   label = 'السعر أعلى من المتوسط قليلاً'; desc = `السعر المعروض أعلى من التقدير بـ ${fmt(diff)} د.ع — يمكن التفاوض.`; }
+    else                { level = 'danger'; label = 'السعر مرتفع';                desc = `السعر المعروض أعلى من التقدير بـ ${fmt(diff)} د.ع — قارن قبل الشراء.`; }
+    verdict = { level, label, desc, diff, pct };
+  }
+
+  return { netWeight, pPerGram, rawValue, workmanship, estimatedBuyPrice, estimatedSellPrice, verdict };
+}
+
+/* Recalculate a saved piece with current price21 */
+function recalcPiece(piece, currentPrice21) {
+  const pPerGram   = priceForKarat(currentPrice21, piece.karat);
+  const rawValue   = piece.netWeight * pPerGram;
+  const workRate   = CONFIG.workmanship[piece.workLevel] ?? CONFIG.workmanship.medium;
+  const workmanship= piece.netWeight * workRate;
+  const buyPrice   = rawValue + workmanship;
+  const sellValue  = rawValue * (1 - CONFIG.sellDiscount / 100);
+  const pl         = sellValue - piece.costBasis;
+  const plPct      = piece.costBasis > 0 ? (pl / piece.costBasis) * 100 : 0;
+  return { pPerGram, rawValue, workmanship, buyPrice, sellValue, pl, plPct };
+}
+
+/* ══════════════════════════════════════════════════════
+   ▸ SUPABASE SERVICE
+══════════════════════════════════════════════════════ */
+const SupabaseService = (() => {
+  let _client  = null;
+  let _channel = null;
+
+  function init() {
+    if (!window._sbLoaded || !window.supabase) return false;
+    if (!SUPABASE_URL || SUPABASE_URL.includes('YOUR_'))  return false;
+    try {
+      const { createClient } = window.supabase;
+      _client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        realtime: { params: { eventsPerSecond: 2 } },
+      });
+      return true;
+    } catch (e) {
+      console.warn('[Supabase] init failed:', e.message);
+      return false;
+    }
+  }
+
+  async function fetchPrice(city, origin) {
+    if (!_client) return null;
+    try {
+      // Try exact city + origin match
+      let { data } = await _client.from('market_prices')
+        .select('*')
+        .eq('karat', 21).eq('price_basis', 'raw_gold')
+        .eq('market_type', 'retail').eq('is_verified', true)
+        .eq('city', city).eq('origin', origin)
+        .order('updated_at', { ascending: false })
+        .limit(1).maybeSingle();
+
+      // Fallback: try 'general' origin
+      if (!data && origin !== 'general') {
+        const r = await _client.from('market_prices')
+          .select('*')
+          .eq('karat', 21).eq('price_basis', 'raw_gold')
+          .eq('market_type', 'retail').eq('is_verified', true)
+          .eq('city', city).eq('origin', 'general')
+          .order('updated_at', { ascending: false })
+          .limit(1).maybeSingle();
+        data = r.data;
+      }
+
+      if (!data) return null;
+
+      return {
+        price21:     data.price_per_gram_iqd,
+        city:        data.city,
+        origin:      data.origin,
+        confidence:  data.confidence_level,
+        source:      'supabase',
+        is_verified: data.is_verified,
+        source_count:data.source_count,
+        updatedAt:   data.updated_at,
+      };
+    } catch (e) {
+      console.warn('[Supabase] fetchPrice error:', e.message);
+      return null;
+    }
+  }
+
+  function subscribe(city, callback) {
+    if (!_client) return;
+    if (_channel) _client.removeChannel(_channel);
+
+    const handleRow = (row) => {
+      if (row.karat === 21 && row.price_basis === 'raw_gold' && row.is_verified) {
+        callback({
+          price21: row.price_per_gram_iqd, city: row.city, origin: row.origin,
+          confidence: row.confidence_level, source: 'supabase',
+          is_verified: true, source_count: row.source_count, updatedAt: row.updated_at,
+        });
+      }
+    };
+
+    _channel = _client.channel('market_prices_live')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'market_prices', filter: `city=eq.${city}` }, p => handleRow(p.new))
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'market_prices', filter: `city=eq.${city}` }, p => handleRow(p.new))
+      .subscribe();
+  }
+
+  function unsubscribe() {
+    if (_channel && _client) { _client.removeChannel(_channel); _channel = null; }
+  }
+
+  return {
+    get isReady() { return _client !== null; },
+    init, fetchPrice, subscribe, unsubscribe,
+  };
+})();
+
+/* ══════════════════════════════════════════════════════
+   ▸ APP CONTROLLER
+══════════════════════════════════════════════════════ */
+const App = (() => {
+  let currentPage     = 'home';
+  let pendingResult   = null;
+  let pendingInput    = null;
+  let confirmCallback = null;
+
+  /* ── Navigation ──────────────────────────────────── */
+  function goTo(page) {
+    if (page === currentPage) return;
+    const prev = document.getElementById(`page-${currentPage}`);
+    const next = document.getElementById(`page-${page}`);
+    if (!next) return;
+    prev.classList.remove('active');
+    next.classList.add('active', 'slide-in');
+    next.addEventListener('animationend', () => next.classList.remove('slide-in'), { once: true });
+    currentPage = page;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+
+    if (page === 'portfolio') renderPortfolio();
+    if (page === 'settings')  renderSettings();
+    if (page === 'home')      renderHeroCard();
+  }
+
+  /* ── Chip groups ─────────────────────────────────── */
+  function initChips() {
+    document.querySelectorAll('.chip-group').forEach(group => {
+      group.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+        });
+      });
+    });
+  }
+
+  function getChipVal(groupId) {
+    const s = document.querySelector(`#${groupId} .chip.selected`);
+    return s ? s.dataset.val : null;
+  }
+
+  function setChipVal(groupId, val) {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+    group.querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('selected', c.dataset.val === val);
+    });
+  }
+
+  /* ── Home ────────────────────────────────────────── */
+  function renderHeroCard() {
+    const market = Store.getMarket();
+    const prefs  = Store.getPrefs();
+    const cityLabel   = CITY_LABELS[market.city   || prefs.city]   || '—';
+    const originLabel = ORIGIN_LABELS[market.origin || prefs.origin] || '—';
+
+    // Source badge
+    let badge;
+    if      (market.source === 'supabase' && market.is_verified) badge = `<span class="badge badge-green">موثّق</span>`;
+    else if (market.source === 'supabase')                       badge = `<span class="badge badge-orange">قيد المراجعة</span>`;
+    else if (market.source === 'cache')                          badge = `<span class="badge badge-orange">آخر سعر محفوظ</span>`;
+    else                                                          badge = `<span class="badge badge-demo">تجريبي</span>`;
+
+    // Confidence badge
+    const confMap = { high: ['badge-green','ثقة مرتفعة'], medium: ['badge-demo','ثقة متوسطة'], low: ['badge-orange','ثقة منخفضة'] };
+    const [confCls, confLbl] = (market.source === 'supabase' && confMap[market.confidence]) ? confMap[market.confidence] : ['',''];
+
+    const el_label = document.getElementById('hero-label');
+    const el_price = document.getElementById('hero-price');
+    const el_sub   = document.getElementById('hero-sub');
+    const el_time  = document.getElementById('hero-time');
+    const el_conf  = document.getElementById('hero-conf');
+
+    if (el_label) el_label.innerHTML = `${badge} سعر السوق — ${cityLabel}`;
+    if (el_price) el_price.textContent = fmt(market.price21);
+    if (el_sub)   el_sub.textContent   = `ذهب ${originLabel} — عيار 21 خام`;
+    if (el_time)  el_time.textContent  = market.updatedAt ? formatTime(market.updatedAt) : 'بيانات تجريبية — حدّث من الإعدادات';
+    if (el_conf)  el_conf.innerHTML    = confCls ? `<span class="badge ${confCls}" style="font-size:10px">${confLbl}</span>` : '';
+
+    updateKaratGrid(market.price21);
+  }
+
+  function updateKaratGrid(price21) {
+    const set = (id, k) => { const el = document.getElementById(id); if (el) el.textContent = fmt(priceForKarat(price21, k)); };
+    set('k24', 24); set('k22', 22); set('k21', 21); set('k18', 18);
+  }
+
+  async function refreshPrices() {
+    const btnHero = document.getElementById('btn-refresh-hero');
+    const btnSet  = document.getElementById('btn-refresh-settings');
+    [btnHero, btnSet].forEach(b => { if (b) { b.disabled = true; b.classList.add('spinning'); } });
+
+    try {
+      if (!SupabaseService.isReady) { toast('Supabase غير مهيأ — راجع README', 'error'); return; }
+      if (!navigator.onLine)        { toast('أنت غير متصل — يُعرض آخر سعر محفوظ', 'info'); return; }
+
+      const prefs = Store.getPrefs();
+      const market = await SupabaseService.fetchPrice(prefs.city, prefs.origin);
+
+      if (market) {
+        Store.saveMarket(market);
+        renderHeroCard();
+        if (currentPage === 'portfolio') renderPortfolio();
+        toast('تم تحديث أسعار السوق ✓', 'success');
+        if (currentPage === 'settings') renderSettings();
+      } else {
+        toast('لم يُعثر على سعر لهذه المدينة في قاعدة البيانات', 'info');
+      }
+    } catch {
+      toast('خطأ في الاتصال — يُعرض آخر سعر محفوظ', 'error');
+    } finally {
+      [btnHero, btnSet].forEach(b => { if (b) { b.disabled = false; b.classList.remove('spinning'); } });
+    }
+  }
+
+  /* ── Calculate ───────────────────────────────────── */
+  function calculate() {
+    const errEl = document.getElementById('eval-error');
+    errEl.style.display = 'none';
+
+    const pieceType = getChipVal('type-chips');
+    const karatStr  = getChipVal('karat-chips');
+    const workLevel = getChipVal('work-chips');
+    const totalW    = parseFloat(document.getElementById('weight-total').value);
+    const stoneW    = parseFloat(document.getElementById('weight-stones').value) || 0;
+    const sellerP   = parseFloat(document.getElementById('seller-price').value)  || 0;
+
+    if (!pieceType || !karatStr || !workLevel) return showError(errEl, 'يرجى اختيار نوع القطعة والعيار ومستوى المصنعية.');
+    if (isNaN(totalW) || totalW <= 0)          return showError(errEl, 'يرجى إدخال الوزن الكلي بشكل صحيح. يجب أن يكون أكبر من صفر.');
+    if (isNaN(stoneW) || stoneW < 0)           return showError(errEl, 'وزن الأحجار لا يمكن أن يكون سالباً.');
+    if (stoneW >= totalW)                       return showError(errEl, 'وزن الأحجار يجب أن يكون أقل من الوزن الكلي للقطعة.');
+    if (sellerP < 0)                            return showError(errEl, 'سعر الصائغ لا يمكن أن يكون سالباً.');
+
+    const karat   = parseInt(karatStr);
+    const price21 = Store.getMarket().price21;
+    const input   = { pieceType, karat, totalWeight: totalW, stoneWeight: stoneW, workLevel, sellerPrice: sellerP };
+    const result  = evaluate(input, price21);
+
+    pendingInput  = input;
+    pendingResult = result;
+
+    openResultSheet(input, result, price21);
+  }
+
+  function showError(el, msg) {
+    el.textContent    = msg;
+    el.style.display  = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* ── Result Sheet ────────────────────────────────── */
+  function openResultSheet(input, result, price21) {
+    const market    = Store.getMarket();
+    const icon      = PIECE_ICONS[input.pieceType] || PIECE_ICONS['أخرى'];
+    const workLabel = { low:'منخفضة', medium:'متوسطة', high:'مرتفعة' }[input.workLevel];
+
+    const VERDICT_ICONS = {
+      good:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polyline points="20,6 9,17 4,12" stroke="#27AE7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      fair:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#C9A043" stroke-width="2"/><path d="M12 8v4m0 4h.01" stroke="#C9A043" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+      high:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E08040" stroke-width="2" stroke-linejoin="round"/><path d="M12 9v4m0 4h.01" stroke="#E08040" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+      danger: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#C04444" stroke-width="2"/><path d="M12 8v4m0 4h.01" stroke="#C04444" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    };
+
+    let verdictHTML = '';
+    if (result.verdict) {
+      const v = result.verdict;
+      verdictHTML = `
+        <div class="verdict-box ${v.level}">
+          <div class="verdict-icon">${VERDICT_ICONS[v.level]}</div>
+          <div>
+            <div class="verdict-title">${v.label}</div>
+            <div class="verdict-desc">${v.desc}</div>
+            <div style="margin-top:8px;font-size:12px;color:var(--text3)">
+              السعر المعروض: <strong style="color:var(--text)">${fmt(input.sellerPrice)} د.ع</strong>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // Stone weight warning
+    const stoneNote = input.stoneWeight > 0 ? `
+      <div style="background:var(--orange-bg);border:1px solid rgba(224,128,64,.25);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--orange);margin-bottom:12px;display:flex;gap:8px;align-items:flex-start">
+        <span style="font-size:14px;flex-shrink:0">⚠️</span>
+        <span>تم خصم وزن الأحجار (${fmtG(input.stoneWeight)} غ) من الحساب، لكن قيمة الأحجار نفسها غير محسوبة.</span>
+      </div>` : '';
+
+    const sourceBadge = market.source === 'supabase' && market.is_verified
+      ? `<span class="badge badge-green" style="font-size:10px">موثّق</span>`
+      : `<span class="badge badge-demo" style="font-size:10px">تجريبي</span>`;
+
+    document.getElementById('sheet-content').innerHTML = `
+      <div style="padding-top:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div class="piece-icon" style="width:42px;height:42px;border-radius:11px">${icon}</div>
+          <div>
+            <div style="font-size:17px;font-weight:700">${input.pieceType}</div>
+            <div style="font-size:12px;color:var(--text3)">عيار ${input.karat} — ${fmtG(result.netWeight)} غ صافي</div>
+          </div>
+        </div>
+
+        ${stoneNote}
+
+        <div class="result-meta">
+          <div class="result-meta-item">عيار <strong>${input.karat}</strong></div>
+          <div class="result-meta-item">صافي <strong>${fmtG(result.netWeight)} غ</strong></div>
+          <div class="result-meta-item">مصنعية <strong>${workLabel}</strong></div>
+          <div class="result-meta-item">سعر غرام ${sourceBadge} <strong>${fmt(result.pPerGram)} د.ع</strong></div>
+        </div>
+
+        <div class="result-row"><span class="result-label">القيمة الخام للذهب</span><span class="result-value gold">${fmt(result.rawValue)} <small style="font-size:12px;color:var(--gold);font-weight:500">د.ع</small></span></div>
+        <div class="result-row"><span class="result-label">المصنعية التقديرية</span><span class="result-value">${fmt(result.workmanship)} <small style="font-size:12px;color:var(--text2);font-weight:500">د.ع</small></span></div>
+        <div class="result-row result-highlight"><span class="result-label" style="font-weight:700;color:var(--text);font-size:14px">سعر الشراء العادل المتوقع</span><span class="result-value" style="font-size:18px;color:var(--gold-light)">${fmt(result.estimatedBuyPrice)} <small style="font-size:13px;color:var(--gold);font-weight:500">د.ع</small></span></div>
+        <div class="result-row"><span class="result-label">سعر البيع المتوقع للصائغ</span><span class="result-value" style="color:var(--text2)">${fmt(result.estimatedSellPrice)} <small style="font-size:12px;font-weight:500">د.ع</small></span></div>
+
+        ${verdictHTML}
+
+        <div style="margin:12px 0;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);font-size:11px;color:var(--text3);line-height:1.7">
+          يعتمد التقييم على سعر غرام خام (عيار 21) = ${fmt(price21)} د.ع ${sourceBadge}. لا تُضاف المصنعية للسعر الخام إلا مرة واحدة.
+        </div>
+
+        <div class="sheet-actions">
+          <button class="btn btn-green" onclick="App.savePiece()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="#27AE7A" stroke-width="2.2"/><polyline points="17,21 17,13 7,13 7,21" stroke="#27AE7A" stroke-width="2.2"/></svg>
+            حفظ في محفظتي
+          </button>
+          <button class="btn btn-ghost" onclick="App.closeSheet();App.resetEvalForm()">تقييم قطعة جديدة</button>
+        </div>
+      </div>`;
+
+    document.getElementById('sheet-overlay').classList.add('open');
+    document.getElementById('bottom-sheet').classList.add('open');
+  }
+
+  /* ── Save piece ──────────────────────────────────── */
+  function savePiece() {
+    if (!pendingResult || !pendingInput) return;
+    const portfolio = Store.getPortfolio();
+    const result    = pendingResult;
+    const input     = pendingInput;
+    const market    = Store.getMarket();
+
+    const piece = {
+      id:                uid(),
+      pieceType:         input.pieceType,
+      karat:             input.karat,
+      totalWeight:       input.totalWeight,
+      stoneWeight:       input.stoneWeight,
+      netWeight:         result.netWeight,
+      workLevel:         input.workLevel,
+      sellerPrice:       input.sellerPrice,
+      priceAtSave:       market.price21,
+      rawValueAtSave:    result.rawValue,
+      workmanshipAtSave: result.workmanship,
+      estimatedBuyAtSave:  result.estimatedBuyPrice,
+      estimatedSellAtSave: result.estimatedSellPrice,
+      costBasis: (input.sellerPrice && input.sellerPrice > 0) ? input.sellerPrice : result.estimatedBuyPrice,
+      verdict:   result.verdict,
+      savedAt:   new Date().toISOString(),
+    };
+
+    portfolio.unshift(piece);
+    Store.savePortfolio(portfolio);
+    closeSheet();
+    toast('تم حفظ القطعة في محفظتك ✓', 'success');
+    pendingResult = null;
+    pendingInput  = null;
+  }
+
+  function resetEvalForm() {
+    ['weight-total','seller-price'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const sw = document.getElementById('weight-stones'); if(sw) sw.value='0';
+    document.getElementById('eval-error').style.display = 'none';
+    setChipVal('type-chips', 'خاتم');
+    setChipVal('karat-chips', '21');
+    setChipVal('work-chips', 'medium');
+  }
+
+  /* ── Portfolio ───────────────────────────────────── */
+  function renderPortfolio() {
+    const rawPortfolio = migratePortfolio(); // ensures all pieces are v2
+    const currentP21   = Store.getMarket().price21;
+    const list         = document.getElementById('portfolio-list');
+
+    if (rawPortfolio.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="#545D80" stroke-width="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 7V5a2 2 0 014 0" stroke="#545D80" stroke-width="2"/></svg></div>
+          <div class="empty-title">لا توجد قطع محفوظة</div>
+          <div class="empty-sub">قيّم قطعة ذهب واحفظها هنا لمتابعة قيمتها</div>
+          <button class="btn btn-gold" onclick="App.goTo('eval')">أضف أول قطعة</button>
+        </div>`;
+      document.getElementById('sum-count').textContent  = '0';
+      document.getElementById('sum-weight').textContent = '0 غ';
+      document.getElementById('sum-raw').textContent    = '—';
+      document.getElementById('sum-pl').textContent     = '—';
+      document.getElementById('sum-pl-badge').style.display = 'none';
+      return;
+    }
+
+    // Compute totals with live prices
+    let totalNetWeight = 0, totalRaw = 0, totalCostBasis = 0, totalSellValue = 0;
+    const recalced = rawPortfolio.map(p => {
+      const live = recalcPiece(p, currentP21);
+      totalNetWeight  += p.netWeight;
+      totalRaw        += live.rawValue;
+      totalCostBasis  += p.costBasis;
+      totalSellValue  += live.sellValue;
+      return { ...p, _live: live };
+    });
+
+    const totalPL    = totalSellValue - totalCostBasis;
+    const totalPLPct = totalCostBasis > 0 ? (totalPL / totalCostBasis) * 100 : 0;
+
+    document.getElementById('sum-count').textContent  = rawPortfolio.length;
+    document.getElementById('sum-weight').textContent = fmtG(totalNetWeight) + ' غ';
+    document.getElementById('sum-raw').textContent    = fmt(totalRaw) + ' د.ع';
+
+    const plEl = document.getElementById('sum-pl');
+    const badge = document.getElementById('sum-pl-badge');
+    badge.style.display = 'inline-flex';
+    if (Math.abs(totalPL) < 1000) {
+      plEl.className = 'summary-value';
+      plEl.textContent = 'لا تغيير يذكر';
+      badge.className  = 'badge badge-demo';
+      badge.textContent = 'متعادل';
+    } else if (totalPL > 0) {
+      plEl.className   = 'summary-value green';
+      plEl.textContent = `▲ +${fmt(totalPL)} د.ع (+${totalPLPct.toFixed(1)}%)`;
+      badge.className  = 'badge badge-green';
+      badge.textContent = 'ربح';
+    } else {
+      plEl.className   = 'summary-value red';
+      plEl.textContent = `▼ ${fmt(totalPL)} د.ع (${totalPLPct.toFixed(1)}%)`;
+      badge.className  = 'badge badge-red';
+      badge.textContent = 'خسارة';
+    }
+
+    // Render cards
+    list.innerHTML = recalced.map(p => {
+      const live   = p._live;
+      const plAmt  = live.pl;
+      const plPct  = live.plPct;
+      const isNeu  = Math.abs(plAmt) < 1000;
+      const plCls  = isNeu ? 'neu' : plAmt > 0 ? 'pos' : 'neg';
+      const plArrow= isNeu ? '—' : plAmt > 0 ? '▲' : '▼';
+      const plSign = plAmt >= 0 ? '+' : '';
+      const plText = isNeu ? 'لا تغيير يذكر' : `${plArrow} ${plSign}${fmt(plAmt)} (${plSign}${plPct.toFixed(1)}%)`;
+      const icon   = PIECE_ICONS[p.pieceType] || PIECE_ICONS['أخرى'];
+
+      return `
+        <div class="piece-card" onclick="App.viewPiece('${p.id}')">
+          <div class="piece-icon">${icon}</div>
+          <div class="piece-info">
+            <div class="piece-name">
+              ${p.pieceType}
+              <span class="badge" style="background:var(--gold-dim);color:var(--gold);font-size:10px;padding:2px 7px;border:1px solid rgba(201,160,67,.25)">${p.karat}ك</span>
+            </div>
+            <div class="piece-details">
+              <span>${fmtG(p.netWeight)} غ صافي</span>
+              <span class="piece-dot"></span>
+              <span>${WORK_LABELS[p.workLevel] || ''}</span>
+            </div>
+            <div class="piece-details" style="margin-top:2px">
+              <span style="color:var(--text3)">${new Date(p.savedAt).toLocaleDateString('ar-IQ')}</span>
+            </div>
+          </div>
+          <div class="piece-value">
+            <div class="piece-val-main">${fmt(live.buyPrice)}</div>
+            <div class="piece-val-sub" style="font-size:10px;color:var(--text3)">د.ع شراء</div>
+            <div class="piece-pl ${plCls}">${plText}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function viewPiece(id) {
+    const portfolio = migratePortfolio();
+    const p = portfolio.find(x => x.id === id);
+    if (!p) return;
+
+    const currentP21 = Store.getMarket().price21;
+    const live       = recalcPiece(p, currentP21);
+    const icon       = PIECE_ICONS[p.pieceType] || PIECE_ICONS['أخرى'];
+    const workLabel  = { low:'منخفضة', medium:'متوسطة', high:'مرتفعة' }[p.workLevel];
+    const costLabel  = (p.sellerPrice && p.sellerPrice > 0) ? 'سعر الصائغ (ما دُفع فعلاً)' : 'سعر الشراء التقديري وقت الحفظ';
+
+    const plAmt  = live.pl;
+    const plPct  = live.plPct;
+    const plCls  = Math.abs(plAmt) < 1000 ? '' : plAmt > 0 ? 'green' : 'red';
+    const plSign = plAmt >= 0 ? '+' : '';
+    const plText = Math.abs(plAmt) < 1000
+      ? 'لا تغيير يذكر'
+      : `${plAmt > 0 ? '▲' : '▼'} ${plSign}${fmt(plAmt)} د.ع (${plSign}${plPct.toFixed(1)}%)`;
+
+    // Verdict from save time
+    let savedVerdictHTML = '';
+    if (p.verdict) {
+      const v = p.verdict;
+      savedVerdictHTML = `
+        <div class="verdict-box ${v.level}" style="margin-top:12px">
+          <div><div class="verdict-title">${v.label}</div><div class="verdict-desc" style="margin-top:4px">${v.desc}</div></div>
+        </div>`;
+    }
+
+    document.getElementById('sheet-content').innerHTML = `
+      <div style="padding-top:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div class="piece-icon" style="width:44px;height:44px">${icon}</div>
+          <div>
+            <div style="font-size:18px;font-weight:700">${p.pieceType}</div>
+            <div style="font-size:12px;color:var(--text3)">${new Date(p.savedAt).toLocaleDateString('ar-IQ',{year:'numeric',month:'long',day:'numeric'})}</div>
+          </div>
+        </div>
+
+        <!-- Section 1: Snapshot -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#545D80" stroke-width="2"/><path d="M12 6v6l4 2" stroke="#545D80" stroke-width="2" stroke-linecap="round"/></svg>
+            لقطة وقت الحفظ
+          </div>
+          <div class="detail-row"><span class="detail-key">العيار</span><span class="detail-val">عيار ${p.karat}</span></div>
+          <div class="detail-row"><span class="detail-key">الوزن الكلي</span><span class="detail-val">${fmtG(p.totalWeight)} غ</span></div>
+          <div class="detail-row"><span class="detail-key">وزن الأحجار</span><span class="detail-val">${fmtG(p.stoneWeight)} غ</span></div>
+          <div class="detail-row"><span class="detail-key">الوزن الصافي</span><span class="detail-val">${fmtG(p.netWeight)} غ</span></div>
+          <div class="detail-row"><span class="detail-key">مستوى المصنعية</span><span class="detail-val">${workLabel}</span></div>
+          <div class="detail-row"><span class="detail-key">سعر الغرام وقت الحفظ</span><span class="detail-val">${fmt(p.priceAtSave)} د.ع</span></div>
+          <div class="detail-row"><span class="detail-key">القيمة الخام وقت الحفظ</span><span class="detail-val gold">${fmt(p.rawValueAtSave)} د.ع</span></div>
+          <div class="detail-row"><span class="detail-key">المصنعية وقت الحفظ</span><span class="detail-val">${fmt(p.workmanshipAtSave)} د.ع</span></div>
+          <div class="detail-row"><span class="detail-key">${costLabel}</span><span class="detail-val gold">${fmt(p.costBasis)} د.ع</span></div>
+        </div>
+
+        <!-- Section 2: Current live values -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M23 4v6h-6M1 20v-6h6" stroke="#545D80" stroke-width="2" stroke-linecap="round"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="#545D80" stroke-width="2" stroke-linecap="round"/></svg>
+            القيمة الحالية — بسعر اليوم
+          </div>
+          <div class="detail-row"><span class="detail-key">سعر الغرام الحالي</span><span class="detail-val">${fmt(live.pPerGram)} د.ع</span></div>
+          <div class="detail-row"><span class="detail-key">القيمة الخام الحالية</span><span class="detail-val gold">${fmt(live.rawValue)} د.ع</span></div>
+          <div class="detail-row"><span class="detail-key">سعر الشراء التقديري اليوم</span><span class="detail-val">${fmt(live.buyPrice)} د.ع</span></div>
+          <div class="detail-row"><span class="detail-key">سعر البيع المتوقع اليوم</span><span class="detail-val">${fmt(live.sellValue)} د.ع</span></div>
+          <div class="detail-row" style="border-bottom:none">
+            <span class="detail-key">ربح / خسارة متوقعة</span>
+            <span class="detail-val ${plCls}" style="font-size:15px">${plText}</span>
+          </div>
+        </div>
+
+        ${savedVerdictHTML}
+
+        <div class="sheet-actions" style="margin-top:12px">
+          <button class="btn btn-danger btn-sm" style="width:100%;padding:14px" onclick="App.confirmDelete('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="2"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 6V4h6v2" stroke="currentColor" stroke-width="2"/></svg>
+            حذف القطعة
+          </button>
+          <button class="btn btn-ghost btn-sm" style="padding:14px" onclick="App.closeSheet()">إغلاق</button>
+        </div>
+      </div>`;
+
+    document.getElementById('sheet-overlay').classList.add('open');
+    document.getElementById('bottom-sheet').classList.add('open');
+  }
+
+  function confirmDelete(id) {
+    closeSheet();
+    confirmCallback = () => {
+      const portfolio = Store.getPortfolio().filter(p => p.id !== id);
+      Store.savePortfolio(portfolio);
+      renderPortfolio();
+      closeConfirm();
+      toast('تم حذف القطعة', 'error');
+    };
+    document.getElementById('confirm-ok').onclick = confirmCallback;
+    document.getElementById('confirm-overlay').classList.add('open');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-overlay').classList.remove('open');
+    confirmCallback = null;
+  }
+
+  /* ── Settings ────────────────────────────────────── */
+  function renderSettings() {
+    const prefs  = Store.getPrefs();
+    const market = Store.getMarket();
+
+    // Sync chips
+    setChipVal('city-chips',   prefs.city);
+    setChipVal('origin-chips', prefs.origin);
+
+    // Sync auto-update toggle
+    const tog = document.getElementById('toggle-auto');
+    if (tog) { tog.classList.toggle('on', prefs.autoUpdate); }
+
+    // Last update time
+    const luEl = document.getElementById('settings-last-update');
+    if (luEl) luEl.textContent = market.updatedAt ? formatTime(market.updatedAt) : 'لم يتم التحديث بعد';
+
+    // Connection status
+    renderConnectionStatus(market);
+  }
+
+  function renderConnectionStatus(market) {
+    const wrap = document.getElementById('conn-status-wrap');
+    if (!wrap) return;
+    market = market || Store.getMarket();
+
+    let statusClass, title, sub;
+    if (!navigator.onLine) {
+      statusClass = 'status-offline'; title = 'غير متصل بالإنترنت';
+      sub = 'يُعرض آخر سعر محفوظ: ' + fmt(market.price21) + ' د.ع';
+    } else if (!SupabaseService.isReady) {
+      statusClass = 'status-demo'; title = 'وضع تجريبي';
+      sub = 'Supabase غير مهيأ — راجع README لربط الأسعار المركزية';
+    } else if (market.source === 'supabase') {
+      statusClass = 'status-online'; title = 'متصل بأسعار السوق';
+      sub = 'آخر سعر: ' + fmt(market.price21) + ' د.ع — ' + (market.updatedAt ? formatTime(market.updatedAt) : '—');
+    } else {
+      statusClass = 'status-cache'; title = 'آخر سعر محفوظ';
+      sub = fmt(market.price21) + ' د.ع — ' + (market.updatedAt ? formatTime(market.updatedAt) : 'سعر تجريبي');
+    }
+
+    const dotMap = { 'status-online':'var(--green)', 'status-offline':'var(--red)', 'status-demo':'var(--gold)', 'status-cache':'var(--orange)' };
+    wrap.innerHTML = `
+      <div class="conn-card ${statusClass}">
+        <div class="conn-dot" style="background:${dotMap[statusClass]}"></div>
+        <div class="conn-info">
+          <div class="conn-title">${title}</div>
+          <div class="conn-sub">${sub}</div>
+        </div>
+      </div>`;
+  }
+
+  function saveUserPrefs() {
+    const city       = getChipVal('city-chips')   || 'basra';
+    const origin     = getChipVal('origin-chips') || 'iraqi';
+    const autoUpdate = document.getElementById('toggle-auto')?.classList.contains('on') ?? true;
+
+    Store.savePrefs({ city, origin, autoUpdate, useOffline: true });
+    renderHeroCard();
+    toast('تم حفظ التفضيلات ✓', 'success');
+
+    // Re-subscribe to new city
+    if (SupabaseService.isReady && navigator.onLine) {
+      SupabaseService.unsubscribe();
+      refreshPrices().then(() => {
+        const prefs = Store.getPrefs();
+        SupabaseService.subscribe(prefs.city, handleRealtimePrice);
+      });
+    }
+  }
+
+  function toggleAutoUpdate() {
+    const tog = document.getElementById('toggle-auto');
+    if (!tog) return;
+    tog.classList.toggle('on');
+  }
+
+  /* ── Common ──────────────────────────────────────── */
+  function closeSheet() {
+    document.getElementById('sheet-overlay').classList.remove('open');
+    document.getElementById('bottom-sheet').classList.remove('open');
+  }
+
+  /* ── Realtime callback ───────────────────────────── */
+  function handleRealtimePrice(market) {
+    Store.saveMarket(market);
+    renderHeroCard();
+    if (currentPage === 'portfolio') renderPortfolio();
+    if (currentPage === 'settings')  renderSettings();
+    toast('تم تحديث سعر السوق تلقائياً ✓', 'success');
+  }
+
+  /* ── Init ────────────────────────────────────────── */
+  async function init() {
+    // 1. Migrate data
+    Store.migrateOldSettings();
+    migratePortfolio();
+
+    // 2. Render home immediately using cached price
+    renderHeroCard();
+
+    // 3. Set eval note
+    const enEl = document.getElementById('eval-price-note');
+    if (enEl) {
+      const m = Store.getMarket();
+      enEl.innerHTML = `<span class="badge badge-demo" style="font-size:11px">بيانات تجريبية — حدّث سعر السوق من الإعدادات</span>`;
+    }
+
+    // 4. Init Supabase
+    const sbOK = SupabaseService.init();
+
+    // 5. Fetch fresh prices if online
+    if (sbOK && navigator.onLine) {
+      const prefs = Store.getPrefs();
+      const market = await SupabaseService.fetchPrice(prefs.city, prefs.origin);
+      if (market) {
+        Store.saveMarket(market);
+        renderHeroCard();
+        const en2 = document.getElementById('eval-price-note');
+        if (en2) en2.innerHTML = `<span class="badge badge-green" style="font-size:11px">سعر محدّث من السوق</span>`;
+      }
+      SupabaseService.subscribe(prefs.city, handleRealtimePrice);
+    }
+
+    // 6. Init all chip interactions
+    initChips();
+
+    // 7. Confirm overlay
+    document.getElementById('confirm-overlay').addEventListener('click', e => {
+      if (e.target.id === 'confirm-overlay') closeConfirm();
+    });
+
+    // 8. Network events
+    window.addEventListener('online',  handleOnline);
+    window.addEventListener('offline', handleOffline);
+  }
+
+  async function handleOnline() {
+    toast('عاد الاتصال بالإنترنت', 'info', 2000);
+    const prefs = Store.getPrefs();
+    if (prefs.autoUpdate && SupabaseService.isReady) {
+      await refreshPrices();
+      SupabaseService.subscribe(prefs.city, handleRealtimePrice);
+    }
+    if (currentPage === 'settings') renderSettings();
+  }
+
+  function handleOffline() {
+    toast('انقطع الاتصال — يُعرض آخر سعر محفوظ', 'info');
+    SupabaseService.unsubscribe();
+    if (currentPage === 'settings') renderSettings();
+  }
+
+  return {
+    goTo, calculate, savePiece, resetEvalForm,
+    renderPortfolio, viewPiece, confirmDelete, closeConfirm,
+    closeSheet, saveUserPrefs, toggleAutoUpdate, refreshPrices, init,
+  };
+})();
+
+App.init();
+</script>
+</body>
+</html>
