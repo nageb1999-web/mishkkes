@@ -22,6 +22,7 @@
   --surface:    #101017;
   --surface2:   #17161E;
   --surface3:   #1E1D26;
+  --surface-elevated: rgba(22,21,29,.86);
   --border:     #262430;
   --border2:    #32303D;
 
@@ -39,16 +40,21 @@
   --red-bg:     rgba(204,70,85,.09);
   --blue:       #5878D4;
   --blue-bg:    rgba(88,120,212,.09);
+  --cyan:       #58A6B8;
+  --cyan-bg:    rgba(88,166,184,.09);
 
   --text:       #EDE8DD;
-  --text2:      #8A8394;
-  --text3:      #56505F;
+  --text2:      #B0A8BA;
+  --text3:      #746D7D;
 
   --radius:     16px;
   --radius-sm:  11px;
   --radius-lg:  24px;
   --nav-h:      64px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --shadow-card: 0 18px 46px rgba(0,0,0,.24);
+  --shadow-soft: 0 10px 28px rgba(0,0,0,.18);
+  --ring: 0 0 0 3px rgba(201,162,67,.16);
 
   --display: 'Tajawal', system-ui, sans-serif;
   --body:    'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
@@ -59,7 +65,9 @@
 html { height: 100%; }
 body {
   font-family: var(--body);
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 50% -8%, rgba(201,162,67,.09), transparent 32%),
+    linear-gradient(180deg, #0D0D13 0%, var(--bg) 34%, #07070B 100%);
   color: var(--text);
   height: 100%;
   overflow: hidden;
@@ -70,6 +78,15 @@ body {
   line-height: 1.6;
 }
 input, textarea, select { user-select: auto; font-family: var(--body); }
+button, input, select, .chip, .toggle { touch-action: manipulation; }
+button:focus-visible,
+.chip:focus-visible,
+.toggle:focus-visible,
+.form-input:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-color: rgba(201,162,67,.62) !important;
+}
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
@@ -85,7 +102,9 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   margin: 0 auto;
   position: relative;
   overflow: hidden;
-  background: var(--bg);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 12%),
+    var(--bg);
 }
 .page {
   display: none; flex: 1;
@@ -101,60 +120,68 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.page-header { padding: 52px 20px 0; margin-bottom: 10px; }
+.page-header { padding: 46px 20px 0; margin-bottom: 12px; }
 .page-title {
   font-family: var(--display);
   font-size: 25px;
   font-weight: 800;
-  letter-spacing: -.3px;
+  letter-spacing: 0;
   color: var(--gold-light);
+  text-shadow: 0 1px 0 rgba(255,255,255,.03);
 }
-.page-sub { font-size: 13px; color: var(--text3); margin-top: 3px; font-weight: 500; }
+.page-sub { font-size: 13px; color: var(--text2); margin-top: 3px; font-weight: 500; }
 
 /* ═══ BOTTOM NAV ═══ */
 #bottom-nav {
   height: calc(var(--nav-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
-  background: rgba(16,16,23,.92);
-  border-top: 1px solid var(--border);
+  background: rgba(13,13,19,.88);
+  border-top: 1px solid rgba(201,162,67,.10);
   display: flex; align-items: stretch;
   flex-shrink: 0; position: relative; z-index: 100;
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 -14px 38px rgba(0,0,0,.30);
+  backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
 }
 .nav-btn {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 3px;
   background: none; border: none; color: var(--text3);
-  cursor: pointer; transition: color .2s var(--ease);
+  cursor: pointer; transition: color .2s var(--ease), transform .16s var(--ease);
   padding-top: 2px; font-family: var(--body); position: relative;
   -webkit-tap-highlight-color: transparent;
-  min-height: 48px;
+  min-height: 52px;
 }
-.nav-btn .nav-label { font-size: 10px; font-weight: 600; letter-spacing: .15px; }
+.nav-btn svg { transition: transform .18s var(--ease); }
+.nav-btn .nav-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0; }
 .nav-btn.active { color: var(--gold); }
 .nav-btn.active::before {
   content: ''; position: absolute;
-  top: 0; left: 28%; right: 28%; height: 2px;
-  background: var(--gold);
-  border-radius: 0 0 2px 2px;
+  top: 7px; left: 50%; width: 38px; height: 30px;
+  transform: translateX(-50%);
+  background: rgba(201,162,67,.11);
+  border: 1px solid rgba(201,162,67,.14);
+  border-radius: 999px;
+  z-index: -1;
 }
+.nav-btn.active svg { transform: translateY(-1px); }
 .nav-btn:active { opacity: .7; }
 
 /* ═══ CARDS ═══ */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.025), transparent 100%), var(--surface);
+  border: 1px solid rgba(255,255,255,.055);
   border-radius: var(--radius);
   padding: 18px;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-soft);
 }
 
 /* ═══ BADGES ═══ */
 .badge {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
-  font-family: var(--body); letter-spacing: .1px;
+  font-family: var(--body); letter-spacing: 0;
 }
 .badge-demo   { background: rgba(201,162,67,.12); color: var(--gold);  border: 1px solid rgba(201,162,67,.2); }
 .badge-green  { background: var(--green-bg);      color: var(--green); border: 1px solid rgba(52,184,122,.18); }
@@ -163,26 +190,27 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 .badge-blue   { background: var(--blue-bg);       color: var(--blue);  border: 1px solid rgba(88,120,212,.18); }
 
 /* ═══ FORM ═══ */
-.form-group  { margin-bottom: 20px; }
-.form-label  { display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+.form-group  { margin-bottom: 14px; }
+.form-label  { display: block; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .form-label span { font-weight: 400; color: var(--text3); }
-.form-hint   { font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.5; }
+.form-hint   { font-size: 11.5px; color: var(--text2); margin-top: 7px; line-height: 1.6; }
 .form-input  {
-  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  width: 100%; background: rgba(255,255,255,.035); border: 1.5px solid rgba(255,255,255,.075);
   border-radius: var(--radius-sm); color: var(--text); font-family: var(--body);
-  font-size: 16px; padding: 14px 16px; outline: none; transition: border-color .2s var(--ease), box-shadow .2s var(--ease); direction: rtl;
+  font-size: 16px; padding: 14px 16px; min-height: 48px; outline: none;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease); direction: rtl;
 }
-.form-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,162,67,.07); }
+.form-input:focus { border-color: var(--gold); background: rgba(255,255,255,.055); box-shadow: var(--ring); }
 .form-input::placeholder { color: var(--text3); }
 
 /* ═══ CHIPS ═══ */
-.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-group { display: flex; flex-wrap: wrap; gap: 9px; }
 .chip {
-  padding: 10px 16px; border-radius: 100px;
-  border: 1.5px solid var(--border2); background: var(--surface2);
-  color: var(--text2); font-size: 13px; font-weight: 600;
+  min-height: 44px; padding: 10px 16px; border-radius: 100px;
+  border: 1.5px solid rgba(255,255,255,.08); background: rgba(255,255,255,.035);
+  color: var(--text2); font-size: 13px; font-weight: 700;
   cursor: pointer;
-  transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease), box-shadow .15s var(--ease);
+  transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease), box-shadow .15s var(--ease), transform .15s var(--ease);
   font-family: var(--body);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -191,9 +219,10 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 }
 .chip:active { transform: scale(.96); }
 .chip.selected {
-  background: var(--gold-dim);
+  background: linear-gradient(180deg, rgba(201,162,67,.16), rgba(201,162,67,.08));
   border-color: var(--gold);
   color: var(--gold-light);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 8px 20px rgba(201,162,67,.06);
 }
 
 /* ═══ BUTTONS ═══ */
@@ -201,8 +230,9 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   border: none; border-radius: var(--radius-sm); font-family: var(--display);
   font-size: 15px; font-weight: 700; cursor: pointer;
-  transition: transform .12s var(--ease), opacity .12s var(--ease);
-  padding: 15px 22px; letter-spacing: .15px;
+  min-height: 44px;
+  transition: transform .12s var(--ease), opacity .12s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+  padding: 15px 22px; letter-spacing: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -211,12 +241,11 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   background: linear-gradient(135deg, #C9A243 0%, #DDB94E 50%, #C9A243 100%);
   background-size: 200% 200%;
   color: #09090F; width: 100%; font-size: 16px; padding: 16px;
-  box-shadow: 0 2px 16px rgba(201,162,67,.15);
-}
   text-shadow: none;
+  box-shadow: 0 10px 26px rgba(201,162,67,.18), inset 0 1px 0 rgba(255,255,255,.35);
 }
 @keyframes goldShimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-.btn-ghost  { background: var(--surface2); color: var(--text2); width: 100%; border: 1px solid var(--border); }
+.btn-ghost  { background: rgba(255,255,255,.04); color: var(--text2); width: 100%; border: 1px solid rgba(255,255,255,.07); }
 .btn-danger { background: var(--red-bg); border: 1px solid rgba(204,70,85,.2); color: var(--red); }
 .btn-green  { background: var(--green-bg); border: 1px solid rgba(52,184,122,.2); color: var(--green); width: 100%; }
 .btn-outline{ background: transparent; border: 1.5px solid var(--border2); color: var(--text2); }
@@ -224,15 +253,15 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 
 /* ═══ TOGGLE ═══ */
 .toggle {
-  width: 46px; height: 26px; border-radius: 13px;
+  width: 50px; height: 30px; border-radius: 15px;
   background: var(--border2); position: relative; cursor: pointer;
   transition: background .2s var(--ease); flex-shrink: 0;
 }
 .toggle.on { background: rgba(201,162,67,.2); }
 .toggle-thumb {
-  position: absolute; top: 3px; right: 3px;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--text3); transition: background .2s var(--ease), transform .2s var(--ease);
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--text3); transition: all .2s var(--ease);
 }
 .toggle.on .toggle-thumb { background: var(--gold); transform: translateX(-20px); }
 .toggle.disabled { opacity: .5; cursor: default; }
@@ -265,53 +294,58 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 
 /* ═══ HOME PAGE ═══ */
 .home-header {
-  padding: 48px 20px 0; display: flex; align-items: center;
+  padding: 42px 20px 0; display: flex; align-items: center;
   justify-content: space-between;
 }
 .home-logo { display: flex; align-items: center; gap: 11px; }
 .logo-mark {
-  width: 40px; height: 40px; border-radius: 11px;
-  background: var(--gold-dim);
-  border: 1px solid rgba(201,162,67,.18);
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(145deg, rgba(201,162,67,.18), rgba(201,162,67,.055));
+  border: 1px solid rgba(201,162,67,.22);
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 24px rgba(0,0,0,.18);
 }
 .logo-text {
   font-family: var(--display); font-size: 23px; font-weight: 900;
   color: var(--gold-light);
-  letter-spacing: -.2px;
+  letter-spacing: 0;
 }
-.logo-tagline { display: block; font-size: 11px; color: var(--text3); margin-top: -1px; font-weight: 500; }
+.logo-tagline { display: block; font-size: 11.5px; color: var(--text2); margin-top: -1px; font-weight: 500; }
 
 /* Hero price card */
 .price-hero {
-  margin: 16px 20px 0; padding: 22px 20px 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  margin: 18px 20px 0; padding: 24px 20px 18px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.052), rgba(255,255,255,.012) 42%, rgba(201,162,67,.045)),
+    var(--surface);
+  border: 1px solid rgba(201,162,67,.16);
   border-radius: var(--radius-lg);
   position: relative; overflow: hidden;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,.07);
 }
 /* Subtle geometric watermark */
 .price-hero::before {
   content: ''; position: absolute;
   top: -30px; left: -30px; right: -30px; bottom: -30px;
   background:
-    radial-gradient(circle at 15% 85%, rgba(201,162,67,.03), transparent 50%),
-    radial-gradient(circle at 85% 15%, rgba(201,162,67,.025), transparent 50%);
+    linear-gradient(135deg, transparent 0 44%, rgba(255,255,255,.03) 44.5% 45%, transparent 45.5% 100%),
+    radial-gradient(circle at 15% 85%, rgba(88,166,184,.055), transparent 42%),
+    radial-gradient(circle at 85% 15%, rgba(201,162,67,.075), transparent 46%);
   pointer-events: none;
 }
 /* Soft gold accent at top-right */
 .price-hero::after {
   content: ''; position: absolute;
   top: -50px; right: -20px; width: 140px; height: 140px;
-  background: radial-gradient(circle, rgba(201,162,67,.06), transparent 70%);
+  background: radial-gradient(circle, rgba(201,162,67,.12), transparent 70%);
   pointer-events: none;
 }
 
 .price-hero-label {
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: 8px;
-  font-size: 13px; color: var(--text2); font-weight: 500;
+  font-size: 13px; color: var(--text2); font-weight: 700;
   margin-bottom: 10px;
 }
 .price-hero-value {
@@ -319,52 +353,53 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   display: flex; align-items: baseline; gap: 8px;
 }
 .price-hero-value #hero-price {
-  font-family: var(--display); font-size: 40px; font-weight: 900;
+  font-family: var(--display); font-size: 43px; font-weight: 900;
   color: var(--gold-light);
-  letter-spacing: -.8px;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
+  line-height: 1.05;
 }
 .price-hero-unit {
   font-family: var(--display); font-size: 17px; font-weight: 700;
-  color: var(--gold); opacity: .6;
+  color: var(--gold); opacity: .82;
 }
 .price-hero-sub {
   position: relative; z-index: 1;
-  font-size: 12px; color: var(--text3); margin-top: 3px; font-weight: 500;
+  font-size: 12.5px; color: var(--text2); margin-top: 5px; font-weight: 600;
 }
 .price-hero-note {
   position: relative; z-index: 1;
-  font-size: 11px; color: var(--text3); margin-top: 10px; font-weight: 400;
-  opacity: .7;
+  font-size: 11.5px; color: var(--text3); margin-top: 10px; font-weight: 500;
 }
 .memorial-note {
   margin: 12px 20px 0;
   padding: 12px 14px;
-  border: 1px solid rgba(201,162,67,.18);
+  border: 1px solid rgba(201,162,67,.14);
   border-radius: var(--radius-sm);
-  background: rgba(201,162,67,.045);
+  background: linear-gradient(180deg, rgba(201,162,67,.07), rgba(201,162,67,.025));
   color: var(--gold-light);
   font-size: 12.5px;
   line-height: 1.8;
   text-align: center;
 }
 .memorial-note span {
+  display: block;
   color: var(--text2);
 }
 .price-hero-footer {
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: 12px; margin-top: 14px;
-  padding-top: 12px; border-top: 1px solid var(--border);
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,.07);
 }
 .price-hero-meta {
   display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: var(--text3); flex: 1; font-weight: 500;
+  font-size: 12px; color: var(--text2); flex: 1; font-weight: 600;
 }
 .btn-refresh-sm {
-  background: none; border: 1px solid var(--border2); color: var(--text3);
-  width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
+  background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.08); color: var(--text2);
+  width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: border-color .15s var(--ease), color .15s var(--ease), opacity .15s var(--ease);
+  transition: all .15s var(--ease);
 }
 .btn-refresh-sm:active { transform: scale(.9); }
 .btn-refresh-sm.spinning svg { animation: spin .6s linear infinite; }
@@ -376,13 +411,20 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   gap: 8px; padding: 14px 20px 0;
 }
 .karat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius-sm);
   padding: 12px 8px; text-align: center;
-  transition: border-color .15s;
+  min-width: 0;
+  transition: border-color .15s, transform .15s var(--ease), background .15s var(--ease);
+  box-shadow: 0 8px 20px rgba(0,0,0,.10);
 }
-.karat-num   { font-size: 11px; color: var(--text3); font-weight: 600; margin-bottom: 4px; letter-spacing: .2px; }
+.karat-card.featured {
+  border-color: rgba(201,162,67,.32);
+  background: linear-gradient(180deg, rgba(201,162,67,.13), rgba(201,162,67,.045));
+  box-shadow: 0 12px 26px rgba(201,162,67,.07), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.karat-num   { font-size: 11px; color: var(--text3); font-weight: 600; margin-bottom: 4px; letter-spacing: 0; }
 .karat-price { font-family: var(--display); font-size: 13.5px; font-weight: 800; color: var(--text2); font-variant-numeric: tabular-nums; }
 
 /* CTA */
@@ -391,9 +433,11 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 /* Features */
 .feature-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 20px; }
 .feature-card {
-  background: var(--surface); border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.032), rgba(255,255,255,.012)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius-sm); padding: 16px 10px;
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+  min-height: 116px;
 }
 .feature-icon {
   width: 38px; height: 38px; border-radius: 10px;
@@ -402,35 +446,58 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 .feature-icon.gold  { background: var(--gold-dim); border: 1px solid rgba(201,162,67,.12); }
 .feature-icon.green { background: var(--green-bg); border: 1px solid rgba(52,184,122,.12); }
 .feature-icon.blue  { background: var(--blue-bg);  border: 1px solid rgba(88,120,212,.12); }
-.feature-label { font-size: 12px; color: var(--text2); font-weight: 500; line-height: 1.45; }
+.feature-label { font-size: 12px; color: var(--text2); font-weight: 600; line-height: 1.45; }
 
 /* ═══ EVAL PAGE ═══ */
 .eval-body { padding: 16px 20px 0; }
+.eval-body .form-group {
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: var(--radius);
+  padding: 15px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);
+}
+.eval-body > .btn-gold {
+  position: sticky;
+  bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px);
+  z-index: 20;
+}
+#eval-price-note {
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+#eval-error {
+  box-shadow: 0 10px 22px rgba(204,70,85,.08);
+}
 .result-meta {
   display: flex; flex-wrap: wrap; gap: 6px;
   padding: 8px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
 }
 .result-meta-item {
-  background: var(--surface2); border: 1px solid var(--border);
+  background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.06);
   border-radius: 8px; padding: 5px 10px; font-size: 12px; color: var(--text3);
 }
 .result-meta-item strong { color: var(--text); font-weight: 600; }
 .result-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+  gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.065); font-size: 14px;
 }
 .result-row:last-of-type { border-bottom: none; }
 .result-label { color: var(--text2); font-weight: 500; }
 .result-value { font-family: var(--display); font-weight: 700; font-variant-numeric: tabular-nums; }
 .result-value.gold { color: var(--gold-light); }
 .result-highlight {
-  background: rgba(201,162,67,.04); border-radius: var(--radius-sm); padding: 14px;
+  background: linear-gradient(180deg, rgba(201,162,67,.12), rgba(201,162,67,.04)); border-radius: var(--radius-sm); padding: 14px;
   margin: 4px 0; border-bottom: none !important;
   border: 1px solid rgba(201,162,67,.1);
 }
 .verdict-box {
   border-radius: var(--radius); padding: 16px; margin: 16px 0;
   display: flex; align-items: flex-start; gap: 12px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
 }
 .verdict-box.good   { background: var(--green-bg); border: 1px solid rgba(52,184,122,.15); }
 .verdict-box.fair   { background: var(--gold-dim); border: 1px solid rgba(201,162,67,.15); }
@@ -454,32 +521,36 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   gap: 8px; padding: 14px 20px 0;
 }
 .summary-card {
-  background: var(--surface); border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius-sm); padding: 14px 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);
 }
-.summary-label { font-size: 10px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+.summary-label { font-size: 10.5px; color: var(--text3); font-weight: 800; letter-spacing: 0; margin-bottom: 5px; }
 .summary-value { font-family: var(--display); font-size: 17px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 .summary-value.gold  { color: var(--gold-light); }
 .summary-value.green { color: var(--green); }
 .summary-value.red   { color: var(--red); }
 .portfolio-list { padding: 14px 20px 0; }
 .piece-card {
-  background: var(--surface); border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
   display: flex; align-items: center; gap: 12px; cursor: pointer;
-  transition: border-color .15s var(--ease);
+  transition: border-color .15s var(--ease), transform .15s var(--ease), background .15s var(--ease);
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);
 }
-.piece-card:active { border-color: var(--border2); }
+.piece-card:active { border-color: rgba(201,162,67,.26); transform: scale(.99); }
 .piece-icon {
   width: 44px; height: 44px; border-radius: 12px;
-  background: var(--gold-dim);
+  background: linear-gradient(180deg, rgba(201,162,67,.13), rgba(201,162,67,.045));
   border: 1px solid rgba(201,162,67,.15);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .piece-info { flex: 1; min-width: 0; }
-.piece-name { font-family: var(--display); font-size: 15px; font-weight: 700; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
-.piece-details { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+.piece-name { font-family: var(--display); font-size: 15px; font-weight: 800; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.piece-details { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .piece-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
 .piece-value { text-align: left; flex-shrink: 0; min-width: 90px; }
 .piece-val-main { font-family: var(--display); font-size: 14px; font-weight: 800; color: var(--gold-light); font-variant-numeric: tabular-nums; text-align: left; }
@@ -487,10 +558,15 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 .piece-pl.pos { color: var(--green); }
 .piece-pl.neg { color: var(--red); }
 .piece-pl.neu { color: var(--text3); }
-.empty-state { text-align: center; padding: 56px 36px; }
+.empty-state {
+  text-align: center; padding: 56px 30px;
+  background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: var(--radius);
+}
 .empty-icon {
   width: 68px; height: 68px; border-radius: 18px;
-  background: var(--surface2); border: 1px solid var(--border);
+  background: rgba(201,162,67,.06); border: 1px solid rgba(201,162,67,.14);
   display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
 }
 .empty-title { font-family: var(--display); font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text2); }
@@ -498,22 +574,23 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 
 /* ═══ DETAIL SHEET ═══ */
 .detail-section {
-  background: var(--surface2); border: 1px solid var(--border);
+  background: rgba(255,255,255,.028); border: 1px solid rgba(255,255,255,.065);
   border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 10px;
 }
 .detail-section-header {
   padding: 10px 14px; font-size: 10px; font-weight: 700;
-  letter-spacing: .7px; text-transform: uppercase; color: var(--text3);
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0; color: var(--text3);
+  border-bottom: 1px solid rgba(255,255,255,.06);
   display: flex; align-items: center; gap: 7px;
 }
 .detail-row {
-  display: flex; justify-content: space-between; padding: 10px 14px;
-  font-size: 14px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; padding: 11px 14px;
+  gap: 14px;
+  font-size: 14px; border-bottom: 1px solid rgba(255,255,255,.055);
 }
 .detail-row:last-child { border-bottom: none; }
-.detail-key { color: var(--text2); }
-.detail-val { font-family: var(--display); font-weight: 700; font-variant-numeric: tabular-nums; }
+.detail-key { color: var(--text2); min-width: 0; }
+.detail-val { font-family: var(--display); font-weight: 700; font-variant-numeric: tabular-nums; text-align: left; }
 .detail-val.gold  { color: var(--gold-light); }
 .detail-val.green { color: var(--green); }
 .detail-val.red   { color: var(--red); }
@@ -521,21 +598,25 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 /* ═══ SETTINGS ═══ */
 .settings-section { padding: 14px 20px 0; margin-bottom: 2px; }
 .settings-card {
-  background: var(--surface); border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius); overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);
 }
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; border-bottom: 1px solid var(--border); gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.06); gap: 12px;
 }
 .setting-row:last-child { border-bottom: none; }
 .setting-info { flex: 1; }
-.setting-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-.setting-hint { font-size: 11px; color: var(--text3); line-height: 1.4; }
+.setting-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.setting-hint { font-size: 11.5px; color: var(--text3); line-height: 1.55; }
 .conn-card {
-  background: var(--surface); border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius); padding: 14px 16px;
   display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);
 }
 .conn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .conn-card.status-online  .conn-dot { background: var(--green); }
@@ -543,9 +624,10 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 .conn-card.status-demo    .conn-dot { background: var(--gold); }
 .conn-card.status-cache   .conn-dot { background: var(--orange); }
 .conn-info .conn-title { font-size: 14px; font-weight: 600; }
-.conn-info .conn-sub   { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.conn-info .conn-sub   { font-size: 12px; color: var(--text2); margin-top: 2px; line-height: 1.55; }
 .about-card {
-  background: var(--surface); border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--surface);
+  border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden;
 }
 .about-card::before {
@@ -560,7 +642,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 }
 .about-text { font-size: 13px; color: var(--text3); line-height: 1.7; position: relative; }
 .formula-note {
-  background: var(--surface2); border: 1px solid var(--border);
+  background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.06);
   border-radius: var(--radius-sm); padding: 12px 14px;
   font-size: 12px; color: var(--text2); line-height: 1.6;
   margin-top: 12px; text-align: center; position: relative;
@@ -569,21 +651,24 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 
 /* ═══ BOTTOM SHEET ═══ */
 #sheet-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  position: fixed; inset: 0; background: rgba(0,0,0,.68);
   z-index: 400; opacity: 0; pointer-events: none; transition: opacity .25s;
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
 #sheet-overlay.open { opacity: 1; pointer-events: auto; }
 #bottom-sheet {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent 22%),
+    var(--surface);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(201,162,67,.16);
   max-height: 90vh; overflow-y: auto;
   z-index: 401; transform: translateY(100%);
   transition: transform .3s var(--ease);
   max-width: 430px; margin: 0 auto;
   padding-bottom: calc(var(--safe-bottom) + 20px);
+  box-shadow: 0 -24px 60px rgba(0,0,0,.42);
 }
 #bottom-sheet.open { transform: translateY(0); }
 .sheet-handle {
@@ -603,7 +688,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 .confirm-overlay.open { opacity: 1; pointer-events: auto; }
 .confirm-box {
   background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  border-top: 1px solid var(--border); padding: 22px 20px;
+  border-top: 1px solid rgba(201,162,67,.16); padding: 22px 20px;
   width: 100%; max-width: 430px;
   transform: translateY(100%); transition: transform .25s var(--ease);
   padding-bottom: calc(var(--safe-bottom) + 22px);
@@ -617,7 +702,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 .divider      { height: 1px; background: var(--border); margin: 14px 0; }
 .section-title {
   font-family: var(--display); font-size: 11px; font-weight: 700;
-  letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
+  letter-spacing: 0; color: var(--text3); margin-bottom: 10px;
 }
 .px-20       { padding-left: 20px; padding-right: 20px; }
 .mt-12       { margin-top: 12px; }
@@ -631,11 +716,17 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 
 /* ═══ SMALL SCREENS ═══ */
 @media (max-width: 360px) {
+  .page-header, .home-header { padding-inline: 16px; }
+  .price-hero, .memorial-note { margin-inline: 16px; }
+  .karat-grid, .feature-row, .portfolio-summary, .portfolio-list, .eval-body, .settings-section, .px-20 { padding-left: 16px; padding-right: 16px; }
   .price-hero-value #hero-price { font-size: 34px; }
   .price-hero-unit { font-size: 15px; }
   .karat-price { font-size: 12px; }
   .feature-label { font-size: 11px; }
   .piece-val-main { font-size: 13px; }
+  .chip { padding-inline: 13px; }
+  .setting-row { align-items: flex-start; flex-direction: column; }
+  .setting-row .btn, .setting-row .form-input { width: 100% !important; }
 }
 
 @media (min-width: 431px) {
@@ -659,7 +750,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
         </div>
         <div>
           <div class="logo-text">مشخّص</div>
-          <span class="logo-tagline">اعرف قيمة ذهبك قبل أن تدفع</span>
+          <span class="logo-tagline">سعر أوضح قبل الشراء أو البيع</span>
         </div>
       </div>
     </div>
@@ -686,7 +777,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
           <span id="hero-time">أدخل سعر الدولار من الإعدادات</span>
         </div>
         <span id="hero-conf"></span>
-        <button class="btn-refresh-sm" id="btn-refresh-hero" onclick="App.refreshPrices()" title="تحديث السعر">
+        <button class="btn-refresh-sm" id="btn-refresh-hero" onclick="App.refreshPrices()" title="تحديث السعر" aria-label="تحديث سعر الذهب">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M23 4v6h-6M1 20v-6h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -696,7 +787,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
     </div>
 
     <div class="memorial-note">
-      وقف على روح المرحومة بإذن الله مشخص عببد الحميد عبد الله
+      وقف على روح المرحومة بإذن الله مشخص عبد الحميد عبد الله
       <span>رحمها الله وأسكنها فسيح جناته</span>
     </div>
 
@@ -710,7 +801,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
         <div class="karat-num">عيار 22</div>
         <div class="karat-price num" id="k22">—</div>
       </div>
-      <div class="karat-card" style="border-color:rgba(201,162,67,.2);background:rgba(201,162,67,.04)">
+      <div class="karat-card featured">
         <div class="karat-num" style="color:var(--gold)">عيار 21</div>
         <div class="karat-price num" style="color:var(--gold-light)" id="k21">—</div>
       </div>
@@ -722,7 +813,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
 
     <!-- CTA -->
     <div class="home-cta">
-      <button class="btn btn-gold" onclick="App.goTo('eval')">
+      <button class="btn btn-gold" onclick="App.goTo('eval')" aria-label="الانتقال إلى تقييم قطعة ذهب">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="10" stroke="#09090F" stroke-width="2.2"/>
           <path d="M12 8v4l3 3" stroke="#09090F" stroke-width="2.2" stroke-linecap="round"/>
@@ -736,15 +827,15 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
     <div class="feature-row">
       <div class="feature-card">
         <div class="feature-icon gold"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="#C9A243" stroke-width="2"/><path d="M16 7V5a2 2 0 00-4 0v2" stroke="#C9A243" stroke-width="2"/></svg></div>
-        <div class="feature-label">اعرف القيمة الخام للذهب</div>
+        <div class="feature-label">قيمة خام حسب عيار القطعة</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="#34B87A" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div class="feature-label">قارن سعر الصائغ بالسوق</div>
+        <div class="feature-label">قارن عرض الصائغ بثقة</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="#5878D4" stroke-width="2"/><polyline points="17,21 17,13 7,13 7,21" stroke="#5878D4" stroke-width="2"/></svg></div>
-        <div class="feature-label">تابع أرباح محفظتك</div>
+        <div class="feature-label">تابع قيمة قطعك المحفوظة</div>
       </div>
     </div>
     <div style="height:20px"></div>
@@ -759,6 +850,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
     <div class="eval-body">
       <div class="form-group">
         <label class="form-label">نوع القطعة</label>
+        <div class="form-hint" style="margin-top:-2px;margin-bottom:10px">اختر أقرب نوع للقطعة. إن لم تجده اختر "أخرى".</div>
         <div class="chip-group" id="type-chips">
           <div role="button" class="chip selected" data-val="خاتم">خاتم</div>
           <div role="button" class="chip" data-val="سوار">سوار</div>
@@ -772,6 +864,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
       </div>
       <div class="form-group">
         <label class="form-label">العيار</label>
+        <div class="form-hint" style="margin-top:-2px;margin-bottom:10px">عيار 21 هو الأكثر تداولاً في السوق العراقي.</div>
         <div class="chip-group" id="karat-chips">
           <div role="button" class="chip" data-val="24">عيار 24</div>
           <div role="button" class="chip" data-val="22">عيار 22</div>
@@ -782,11 +875,12 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
       <div class="form-group">
         <label class="form-label">الوزن الكلي <span>(بالغرام)</span></label>
         <input class="form-input" id="weight-total" type="number" placeholder="مثال: 4.25" min="0.01" step="0.01" inputmode="decimal">
+        <div class="form-hint">اكتب الوزن كما يظهر على ميزان الصائغ، ويمكن استخدام الفاصلة العشرية.</div>
       </div>
       <div class="form-group">
         <label class="form-label">وزن الأحجار / الفصوص <span>(اختياري — غرام)</span></label>
         <input class="form-input" id="weight-stones" type="number" placeholder="0 إذا لم يوجد" min="0" step="0.01" inputmode="decimal" value="0">
-        <div class="form-hint">يُطرح من الوزن الكلي عند الحساب</div>
+        <div class="form-hint">إذا كانت القطعة تحتوي فصوصاً أو أحجاراً، اكتب وزنها ليُطرح من وزن الذهب فقط.</div>
       </div>
       <div class="form-group">
         <label class="form-label">مستوى المصنعية</label>
@@ -795,15 +889,15 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
           <div role="button" class="chip selected" data-val="medium">متوسطة</div>
           <div role="button" class="chip" data-val="high">مرتفعة</div>
         </div>
-        <div class="form-hint">تقديرية — تختلف حسب نوع القطعة والصائغ</div>
+        <div class="form-hint">المصنعية هي أجرة التصميم والعمل. اختر الأقرب إذا لم تعرف الرقم الحقيقي.</div>
       </div>
       <div class="form-group">
         <label class="form-label">سعر الصائغ <span>(اختياري — د.ع)</span></label>
         <input class="form-input" id="seller-price" type="number" placeholder="السعر المطلوب من الصائغ" min="0" step="1000" inputmode="numeric">
-        <div class="form-hint">أدخله لمقارنة العرض بالسعر التقديري</div>
+        <div class="form-hint">اختياري. أدخله عندما تريد معرفة إن كان عرض الصائغ مناسباً أم مرتفعاً.</div>
       </div>
       <div id="eval-error" style="display:none;font-size:13px;margin-bottom:12px;padding:10px 14px;background:var(--red-bg);border-radius:10px;border:1px solid rgba(204,70,85,.18);color:var(--red)"></div>
-      <button class="btn btn-gold" onclick="App.calculate()">
+      <button class="btn btn-gold" onclick="App.calculate()" aria-label="حساب تقييم قطعة الذهب">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3M16 3h5m0 0v5m0-5l-8 8" stroke="#09090F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -860,7 +954,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
         <label class="form-label" style="margin-bottom:10px">سعر الدولار في السوق المحلي <span>(دينار عراقي)</span></label>
         <input class="form-input" id="inp-dollar-rate" type="number" placeholder="مثال: 1500" min="1" step="1" inputmode="numeric" style="font-family:var(--display);font-size:22px;font-weight:800;text-align:center;direction:ltr">
         <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">
-          سعر الدولار هنا هو سعر السوق الموازي، وقد يختلف من محافظة إلى أخرى.
+          اكتب سعر البيع المتداول في السوق الموازي. هذا الرقم يؤثر مباشرة على سعر غرام الذهب.
         </div>
         <label class="form-label" style="margin:16px 0 8px">المحافظة / السوق</label>
         <select class="form-input" id="market-region" style="font-size:15px;padding:12px 14px">
@@ -878,7 +972,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
         <label class="form-label" style="margin-bottom:10px">سعر غرام 21 في السوق المحلي <span>(دينار عراقي)</span></label>
         <input class="form-input" id="inp-market-price21" type="number" placeholder="مثال: 170000" min="50000" step="100" inputmode="numeric" style="font-family:var(--display);font-size:22px;font-weight:800;text-align:center;direction:ltr">
         <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;line-height:1.7">
-          إذا كان سعر السوق لا يطابق المعادلة، أدخل سعر غرام 21 الحقيقي وسيتم حساب باقي العيارات والمحفظة بناءً عليه.
+          استخدم هذا الخيار عندما يعطيك السوق المحلي سعراً واضحاً لغرام 21 وتريد اعتماده بدل المعادلة.
         </div>
         <div class="setting-row" style="margin:14px -18px -18px;border-bottom:none">
           <div class="setting-info">
@@ -900,7 +994,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
             <div class="setting-name" id="ounce-display" style="font-family:var(--display);font-size:20px;font-weight:800;direction:ltr;text-align:right">—</div>
             <div class="setting-hint" id="ounce-time">جارٍ الجلب…</div>
           </div>
-          <button class="btn btn-sm btn-outline" id="btn-refresh-ounce" onclick="App.refreshOunce()">تحديث</button>
+          <button class="btn btn-sm btn-outline" id="btn-refresh-ounce" onclick="App.refreshOunce()" aria-label="تحديث سعر أونصة الذهب">تحديث</button>
         </div>
         <div class="setting-row" style="border-bottom:none">
           <div class="setting-info">
@@ -931,7 +1025,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
             <div class="setting-name">آخر تحديث</div>
             <div class="setting-hint" id="settings-last-update">—</div>
           </div>
-          <button class="btn btn-sm btn-outline" id="btn-refresh-settings" onclick="App.refreshPrices()">تحديث الآن</button>
+          <button class="btn btn-sm btn-outline" id="btn-refresh-settings" onclick="App.refreshPrices()" aria-label="تحديث الأسعار الآن">تحديث الآن</button>
         </div>
         <div class="setting-row" style="border-bottom:none;padding-top:0">
           <button class="btn btn-sm btn-outline" id="btn-refresh-dollar" onclick="App.refreshDollar()">تحديث سعر الدولار</button>
@@ -941,7 +1035,7 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
     </div>
 
     <div class="settings-section">
-      <button class="btn btn-gold" onclick="App.saveUserPrefs()">
+      <button class="btn btn-gold" onclick="App.saveUserPrefs()" aria-label="حفظ إعدادات السوق">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="#09090F" stroke-width="2.2"/>
           <polyline points="17,21 17,13 7,13 7,21" stroke="#09090F" stroke-width="2.2"/>
@@ -961,10 +1055,10 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
           سعر الغرام = <strong>(أونصة عالمية ÷ 31.1) × سعر الدولار × (العيار ÷ 24)</strong>
         </div>
         <div style="margin-top:12px;font-size:11px;color:var(--text3);position:relative;line-height:1.6">
-          ⚠️ لا يمثل سعراً رسمياً أو ملزماً — استخدمه كأداة مقارنة فقط.
+          تنبيه: السعر تقديري وغير ملزم، استخدمه للمقارنة قبل القرار.
         </div>
         <div style="margin-top:10px;font-size:11px;color:var(--text3);position:relative">
-          الإصدار 4.1
+          الإصدار 4.0
         </div>
       </div>
     </div>
@@ -972,20 +1066,20 @@ input, textarea, select { user-select: auto; font-family: var(--body); }
   </div>
 
   <!-- ══ BOTTOM NAV ══ -->
-  <nav id="bottom-nav">
-    <button class="nav-btn active" data-page="home" onclick="App.goTo('home')">
+  <nav id="bottom-nav" aria-label="التنقل الرئيسي">
+    <button class="nav-btn active" data-page="home" onclick="App.goTo('home')" aria-label="الرئيسية">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1m-2 0h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="nav-label">الرئيسية</span>
     </button>
-    <button class="nav-btn" data-page="eval" onclick="App.goTo('eval')">
+    <button class="nav-btn" data-page="eval" onclick="App.goTo('eval')" aria-label="تقييم الذهب">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       <span class="nav-label">قيّم</span>
     </button>
-    <button class="nav-btn" data-page="portfolio" onclick="App.goTo('portfolio')">
+    <button class="nav-btn" data-page="portfolio" onclick="App.goTo('portfolio')" aria-label="محفظتي">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 7V5a2 2 0 00-4 0v2M8 7V5a2 2 0 014 0" stroke="currentColor" stroke-width="2"/></svg>
       <span class="nav-label">محفظتي</span>
     </button>
-    <button class="nav-btn" data-page="settings" onclick="App.goTo('settings')">
+    <button class="nav-btn" data-page="settings" onclick="App.goTo('settings')" aria-label="الإعدادات">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/></svg>
       <span class="nav-label">إعدادات</span>
     </button>
@@ -1251,10 +1345,10 @@ function evaluate(input, price21) {
   if (input.sellerPrice && input.sellerPrice > 0) {
     const diff = input.sellerPrice - estimatedBuyPrice; const pct = (diff / estimatedBuyPrice) * 100;
     let level, label, desc;
-    if (pct < -3) { level='good'; label='سعر جيد ✓'; desc=`السعر المعروض أقل من التقدير بـ ${fmt(Math.abs(diff))} د.ع — فرصة جيدة.`; }
-    else if (pct <= 3) { level='fair'; label='السعر عادل تقريباً'; desc=`الفارق ${fmt(Math.abs(diff))} د.ع — ضمن الهامش الطبيعي.`; }
-    else if (pct <= 8) { level='high'; label='السعر أعلى من المتوسط قليلاً'; desc=`السعر المعروض أعلى من التقدير بـ ${fmt(diff)} د.ع — يمكن التفاوض.`; }
-    else { level='danger'; label='السعر مرتفع'; desc=`السعر المعروض أعلى من التقدير بـ ${fmt(diff)} د.ع — قارن قبل الشراء.`; }
+    if (pct < -3) { level='good'; label='سعر مناسب'; desc=`السعر المعروض أقل من التقدير بـ ${fmt(Math.abs(diff))} د.ع. عرض جيد إذا كانت القطعة بحالة ممتازة.`; }
+    else if (pct <= 3) { level='fair'; label='قريب من السعر المتوقع'; desc=`الفارق ${fmt(Math.abs(diff))} د.ع فقط، وهذا ضمن الهامش الطبيعي للمصنعية والسوق.`; }
+    else if (pct <= 8) { level='high'; label='أعلى من المتوقع'; desc=`السعر أعلى من التقدير بـ ${fmt(diff)} د.ع. جرّب التفاوض أو قارن مع صائغ آخر.`; }
+    else { level='danger'; label='يحتاج مراجعة'; desc=`السعر أعلى من التقدير بـ ${fmt(diff)} د.ع. لا تستعجل الشراء قبل المقارنة.`; }
     verdict = { level, label, desc, diff, pct };
   }
   return { netWeight, pPerGram, rawValue, workmanship, estimatedBuyPrice, estimatedSellPrice, verdict };
@@ -1603,7 +1697,11 @@ const App = (() => {
     next.classList.add('active', 'slide-in');
     next.addEventListener('animationend', () => next.classList.remove('slide-in'), { once: true });
     currentPage = page;
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      const isActive = b.dataset.page === page;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-current', isActive ? 'page' : 'false');
+    });
     if (page === 'portfolio') renderPortfolio();
     if (page === 'settings')  renderSettings();
     if (page === 'home')      renderHeroCard();
@@ -1614,11 +1712,26 @@ const App = (() => {
       // Use event delegation for more reliable mobile touch handling
       function selectChip(chip) {
         if (!chip || !chip.classList.contains('chip')) return;
-        group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        group.querySelectorAll('.chip').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-pressed', 'false');
+        });
         chip.classList.add('selected');
+        chip.setAttribute('aria-pressed', 'true');
       }
+      group.querySelectorAll('.chip').forEach(chip => {
+        chip.setAttribute('tabindex', '0');
+        chip.setAttribute('aria-pressed', chip.classList.contains('selected') ? 'true' : 'false');
+      });
       group.addEventListener('click', e => {
         const chip = e.target.closest('.chip');
+        selectChip(chip);
+      });
+      group.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        e.preventDefault();
         selectChip(chip);
       });
       // Also handle touchend for faster mobile response
@@ -1632,7 +1745,15 @@ const App = (() => {
     });
   }
   function getChipVal(groupId) { const s = document.querySelector(`#${groupId} .chip.selected`); return s ? s.dataset.val : null; }
-  function setChipVal(groupId, val) { const g = document.getElementById(groupId); if (!g) return; g.querySelectorAll('.chip').forEach(c => c.classList.toggle('selected', c.dataset.val === val)); }
+  function setChipVal(groupId, val) {
+    const g = document.getElementById(groupId);
+    if (!g) return;
+    g.querySelectorAll('.chip').forEach(c => {
+      const selected = c.dataset.val === val;
+      c.classList.toggle('selected', selected);
+      c.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+  }
 
   function renderHeroCard() {
     const market = Store.getMarket();
@@ -1704,8 +1825,11 @@ const App = (() => {
   function setPriceButtonsLoading(isLoading) {
     const btns = ['btn-refresh-hero','btn-refresh-settings','btn-refresh-ounce','btn-refresh-dollar','btn-refresh-all']
       .map(id => document.getElementById(id));
-    btns.forEach(b => { if (b) { b.disabled = true; b.classList.add('spinning'); } });
-    if (!isLoading) btns.forEach(b => { if (b) { b.disabled = false; b.classList.remove('spinning'); } });
+    btns.forEach(b => {
+      if (!b) return;
+      b.disabled = Boolean(isLoading);
+      b.classList.toggle('spinning', Boolean(isLoading));
+    });
   }
 
   function toastForMarket(market) {
@@ -2077,7 +2201,11 @@ const App = (() => {
     if (marketPriceEl && !marketPriceEl.matches(':focus')) marketPriceEl.value = prefs.marketPrice21 || '';
 
     const marketToggle = document.getElementById('toggle-market-price');
-    if (marketToggle) marketToggle.classList.toggle('on', Boolean(prefs.useMarketPrice && validateMarketPrice21(prefs.marketPrice21)));
+    if (marketToggle) {
+      const isOn = Boolean(prefs.useMarketPrice && validateMarketPrice21(prefs.marketPrice21));
+      marketToggle.classList.toggle('on', isOn);
+      marketToggle.setAttribute('aria-checked', isOn ? 'true' : 'false');
+    }
 
     // Ounce display
     const ozEl = document.getElementById('ounce-display');
@@ -2088,7 +2216,10 @@ const App = (() => {
 
     // Auto-update toggle
     const tog = document.getElementById('toggle-auto');
-    if (tog) tog.classList.toggle('on', prefs.autoUpdate);
+    if (tog) {
+      tog.classList.toggle('on', prefs.autoUpdate);
+      tog.setAttribute('aria-checked', prefs.autoUpdate ? 'true' : 'false');
+    }
 
     // Last update
     const luEl = document.getElementById('settings-last-update');
@@ -2210,6 +2341,7 @@ const App = (() => {
     const tog = document.getElementById('toggle-auto');
     if (!tog) return;
     tog.classList.toggle('on');
+    tog.setAttribute('aria-checked', tog.classList.contains('on') ? 'true' : 'false');
     const prefs = Store.getPrefs();
     Store.savePrefs({ ...prefs, autoUpdate: tog.classList.contains('on') });
     scheduleAutoRefresh();
@@ -2219,6 +2351,7 @@ const App = (() => {
     const tog = document.getElementById('toggle-market-price');
     if (!tog) return;
     tog.classList.toggle('on');
+    tog.setAttribute('aria-checked', tog.classList.contains('on') ? 'true' : 'false');
   }
 
   /* ── Common ──────────────────────────────────────── */
@@ -2258,6 +2391,20 @@ const App = (() => {
 
     // 4. Init chip interactions
     initChips();
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      const isActive = b.dataset.page === currentPage;
+      b.setAttribute('aria-current', isActive ? 'page' : 'false');
+    });
+    document.querySelectorAll('.toggle').forEach(t => {
+      t.setAttribute('role', 'switch');
+      t.setAttribute('tabindex', '0');
+      t.setAttribute('aria-checked', t.classList.contains('on') ? 'true' : 'false');
+      t.addEventListener('keydown', e => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        t.click();
+      });
+    });
 
     // 5. Confirm overlay
     document.getElementById('confirm-overlay').addEventListener('click', e => {
